@@ -152,6 +152,12 @@ class Id(ULID):
         return cls(ulid.new())
 
     def serialize(self) -> str:
+        """
+        Serialize the ULID to a string.
+
+        >>> Id("01HRQ0BNKS4WMFVQPW810MPM3V").serialize()
+        '01HRQ0BNKS4WMFVQPW810MPM3V'
+        """
         return str(self)
 
     def __repr__(self) -> str:
