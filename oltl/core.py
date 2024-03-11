@@ -104,3 +104,14 @@ class NonEmptyString(LimitedMinLengthMixin, BaseString):
     @classmethod
     def get_min_length(cls) -> int:
         return 1
+
+
+class LimitedMaxLengthMixin(ABC, BaseString):
+    @classmethod
+    @abstractmethod
+    def get_max_length(cls) -> int:
+        raise NotImplementedError
+
+    @classmethod
+    def __get_extra_constraint_dict__(cls) -> dict[str, Any]:
+        return super().__get_extra_constraint_dict__() | {"max_length": cls.get_max_length()}
