@@ -28,6 +28,7 @@ dependencies = [
     "pydantic",
     "python-dateutil",
     "pydantic_settings",
+    "ulid-py",
 ]
 
 [project.urls]
