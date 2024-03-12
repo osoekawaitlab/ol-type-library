@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
+from datetime import datetime as _datetime
+from datetime import timezone as _timezone
 from typing import Any, Type, TypeVar, Union
 
 import ulid
+from dateutil.parser import parse as parse_datetime
 from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler, TypeAdapter
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
@@ -180,3 +183,114 @@ class Id(ULID):
 
     def __get_pydantic_json_schema__(self, _handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         return {"format": "crockfordBase32", "type": "string"}
+
+
+class Timestamp(int):
+    """
+    Timestamp class
+    >>> a = Timestamp(1674397764479000)
+    >>> a
+    Timestamp(1674397764479000)
+    >>> a.milliseconds
+    1674397764479
+    >>> a.microseconds
+    1674397764479000
+    >>> a.datetime
+    datetime.datetime(2023, 1, 22, 14, 29, 24, 479000, tzinfo=datetime.timezone.utc)
+    >>> dt = a.datetime
+    >>> ts = dt.timestamp()
+    >>> Timestamp(dt)
+    Timestamp(1674397764479000)
+    >>> Timestamp(ts)
+    Timestamp(1674397764479000)
+    >>> Timestamp("2023-01-22T14:29:24.422Z")
+    Timestamp(1674397764422000)
+    >>> Timestamp("2023/02/12 12:21:12")
+    Timestamp(1676172072000000)
+    >>> Timestamp("invalid")
+    Traceback (most recent call last):
+      ...
+    dateutil.parser._parser.ParserError: Unknown string format: invalid
+    >>> from pydantic import TypeAdapter
+    >>> ta = TypeAdapter(Timestamp)
+    >>> ta.validate_python(1674397764479000)
+    Timestamp(1674397764479000)
+    >>> ta.validate_python("2023-01-22T14:29:24.422Z")
+    Timestamp(1674397764422000)
+    >>> ta.validate_python("2023/02/12 12:21:12")
+    Timestamp(1676172072000000)
+    >>> ta.validate_python("invalid")
+    Traceback (most recent call last):
+     ...
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-plain[validate()]
+      Value error, Unknown string format: invalid [type=value_error, input_value='invalid', input_type=str]
+     ...
+    """
+
+    def __new__(cls, value: Union[int, float, _datetime, str]) -> "Timestamp":
+        if isinstance(value, _datetime):
+            return super(Timestamp, cls).__new__(cls, int(value.timestamp() * 1000000))
+        if isinstance(value, str):
+            return super(Timestamp, cls).__new__(cls, int(parse_datetime(value).timestamp() * 1000000))
+        if isinstance(value, float):
+            return super(Timestamp, cls).__new__(cls, int(value * 1000000))
+        return super(Timestamp, cls).__new__(cls, value)
+
+    @classmethod
+    def validate(cls, v: Any) -> "Timestamp":
+        if isinstance(v, cls):
+            return v
+        if isinstance(v, (int, float, _datetime, str)):
+            return cls(v)
+        raise ValueError(f"Cannot convert {v} to {cls}")
+
+    @property
+    def milliseconds(self) -> int:
+        """
+        >>> a = Timestamp(1674365364479000)
+        >>> a.milliseconds
+        1674365364479
+        """
+        return int(self // 1000)
+
+    @property
+    def microseconds(self) -> int:
+        """
+        >>> a = Timestamp(1674365364479000)
+        >>> a.microseconds
+        1674365364479000
+        """
+        return int(self)
+
+    @property
+    def datetime(self) -> _datetime:
+        """
+        >>> a = Timestamp(1674397764479000)
+        >>> a.datetime
+        datetime.datetime(2023, 1, 22, 14, 29, 24, 479000, tzinfo=datetime.timezone.utc)
+        """
+        return _datetime.fromtimestamp(self / 1000000, tz=_timezone.utc)
+
+    @classmethod
+    def now(cls) -> "Timestamp":
+        return cls(_datetime.utcnow())
+
+    def __repr__(self) -> str:
+        return f"Timestamp({super(Timestamp, self).__repr__()})"
+
+    @classmethod
+    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
+        return core_schema.no_info_plain_validator_function(
+            cls.validate,
+            serialization=core_schema.plain_serializer_function_ser_schema(cls.serialize, when_used="json"),
+        )
+
+    def __get_pydantic_json_schema__(self, _handler: GetJsonSchemaHandler) -> JsonSchemaValue:
+        return {"format": "timestamp", "type": "integer"}
+
+    def serialize(self) -> int:
+        """
+        >>> Timestamp(1674397764479000).serialize()
+        1674397764479000
+        """
+        return int(self)
