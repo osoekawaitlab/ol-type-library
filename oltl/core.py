@@ -366,4 +366,4 @@ class BaseEntity(BaseModel, Generic[IdT]):
     True
     """
 
-    id: IdT = Field(default_factory=lambda: cast(IdT, Id.generate()), validate_default=True)
+    id: IdT = Field(default_factory=lambda: cast(IdT, Id.generate()), validate_default=True, frozen=True)
