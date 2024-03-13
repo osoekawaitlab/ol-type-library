@@ -1,12 +1,18 @@
 from abc import ABC, abstractmethod
 from datetime import datetime as _datetime
 from datetime import timezone as _timezone
-from typing import Any, Type, TypeAlias, TypeVar, Union
+from typing import Any, Generic, Type, TypeAlias, TypeVar, Union, cast
 
 import ulid
 from dateutil.parser import parse as parse_datetime
 from pydantic import BaseModel as PydanticBaseModel
-from pydantic import ConfigDict, GetCoreSchemaHandler, GetJsonSchemaHandler, TypeAdapter
+from pydantic import (
+    ConfigDict,
+    Field,
+    GetCoreSchemaHandler,
+    GetJsonSchemaHandler,
+    TypeAdapter,
+)
 from pydantic.alias_generators import to_camel
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
@@ -347,3 +353,17 @@ class BaseModel(PydanticBaseModel):
             round_trip=round_trip,
             warnings=warnings,
         )
+
+
+class BaseEntity(BaseModel, Generic[IdT]):
+    """
+    >>> class DerivedId(Id):
+    ...   pass
+    >>> class DerivedEntity(BaseEntity[DerivedId]):
+    ...   ...
+    >>> x = DerivedEntity()
+    >>> isinstance(x.id, DerivedId)
+    True
+    """
+
+    id: IdT = Field(default_factory=lambda: cast(IdT, Id.generate()), validate_default=True)
