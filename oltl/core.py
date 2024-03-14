@@ -362,8 +362,36 @@ class BaseEntity(BaseModel, Generic[IdT]):
     >>> class DerivedEntity(BaseEntity[DerivedId]):
     ...   ...
     >>> x = DerivedEntity()
+    >>> x.id
+    DerivedId('...')
     >>> isinstance(x.id, DerivedId)
     True
     """
 
     id: IdT = Field(default_factory=lambda: cast(IdT, Id.generate()), validate_default=True, frozen=True)
+
+
+class BaseCreationTimeAwareModel(BaseModel):
+    """
+    >>> class DerivedCreationTimeAwareModel(BaseCreationTimeAwareModel):
+    ...   ...
+    >>> x = DerivedCreationTimeAwareModel()
+    >>> x.created_at
+    Timestamp(...)
+    """
+
+    created_at: Timestamp = Field(default_factory=Timestamp.now, validate_default=True, frozen=True)
+
+
+class BaseUpdateTimeAwareModel(BaseCreationTimeAwareModel):
+    """
+    >>> class DerivedUpdateTimeAwareModel(BaseUpdateTimeAwareModel):
+    ...     ...
+    >>> x = DerivedUpdateTimeAwareModel()
+    >>> x.updated_at
+    Timestamp(...)
+    >>> x.created_at
+    Timestamp(...)
+    """
+
+    updated_at: Timestamp = Field(default_factory=Timestamp.now, validate_default=True)
