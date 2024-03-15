@@ -73,7 +73,7 @@ def test_derived_entity_serialize_deserialize() -> None:
     assert MyEntity.model_validate_json(actual) == deserialize_expected
 
 
-def test_creation_time_aware_model_has_created() -> None:
+def test_creation_time_aware_model_has_created_at() -> None:
     class MyModel(core.BaseCreationTimeAwareModel):
         object_name: str
         some_value: int
@@ -101,3 +101,35 @@ def test_created_at_is_immutable() -> None:
         model = MyModel(object_name="foo", some_value=42)
     with pytest.raises(ValidationError, match="1 validation error for MyModel\ncreated_at\n\\s+Field is frozen.*"):
         model.created_at = core.Timestamp.now()
+
+
+def test_update_time_aware_model_has_created_at_and_updated_at() -> None:
+    class MyModel(core.BaseUpdateTimeAwareModel):
+        object_name: str
+        some_value: int
+
+    dt = datetime(2024, 3, 15, 23, 31, 21, 123456, tzinfo=timezone.utc)
+    with freeze_time(dt):
+        actual = MyModel(object_name="foo", some_value=42)
+    expected = MyModel(created_at=core.Timestamp(dt), updated_at=core.Timestamp(dt), object_name="foo", some_value=42)
+    assert actual == expected
+
+    dt2 = datetime(2024, 3, 15, 23, 33, 15, 123456, tzinfo=timezone.utc)
+    with freeze_time(dt2):
+        actual.object_name = "bar"
+    expected2 = MyModel(created_at=core.Timestamp(dt), updated_at=core.Timestamp(dt2), object_name="bar", some_value=42)
+    assert actual == expected2
+
+
+def test_updated_at_is_not_immutable() -> None:
+    class MyModel(core.BaseUpdateTimeAwareModel):
+        object_name: str
+        some_value: int
+
+    dt = datetime(2024, 3, 15, 23, 31, 21, 123456, tzinfo=timezone.utc)
+    with freeze_time(dt):
+        model = MyModel(object_name="foo", some_value=42)
+    dt2 = datetime(2024, 3, 15, 23, 33, 15, 123456, tzinfo=timezone.utc)
+    model.updated_at = core.Timestamp(dt2)
+    expected = MyModel(created_at=core.Timestamp(dt), updated_at=core.Timestamp(dt2), object_name="foo", some_value=42)
+    assert model == expected

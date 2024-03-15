@@ -395,3 +395,12 @@ class BaseUpdateTimeAwareModel(BaseCreationTimeAwareModel):
     """
 
     updated_at: Timestamp = Field(default_factory=Timestamp.now, validate_default=True)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name == "updated_at":
+            return super(BaseUpdateTimeAwareModel, self).__setattr__(name, value)
+        try:
+            super(BaseUpdateTimeAwareModel, self).__setattr__(name, value)
+        except Exception as e:
+            raise e
+        super(BaseUpdateTimeAwareModel, self).__setattr__("updated_at", Timestamp.now())
