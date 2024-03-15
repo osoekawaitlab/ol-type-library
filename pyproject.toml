@@ -104,6 +104,6 @@ legacy_tox_ini = """
         isort oltl tests
         pytest
         pflake8 oltl/ tests/ stubs/
-        mypy oltl --strict
+        mypy oltl --strict --show-traceback
         mypy tests --strict
 """
