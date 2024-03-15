@@ -133,3 +133,17 @@ def test_updated_at_is_not_immutable() -> None:
     model.updated_at = core.Timestamp(dt2)
     expected = MyModel(created_at=core.Timestamp(dt), updated_at=core.Timestamp(dt2), object_name="foo", some_value=42)
     assert model == expected
+
+
+def test_setattribute_error_doesnt_renew_updated_at() -> None:
+    class MyModel(core.BaseUpdateTimeAwareModel):
+        object_name: str
+        some_value: int
+
+    dt = datetime(2024, 3, 15, 23, 31, 21, 123456, tzinfo=timezone.utc)
+    with freeze_time(dt):
+        model = MyModel(object_name="foo", some_value=42)
+    with pytest.raises(Exception):
+        model.created_at = core.Timestamp.now()
+    expected = MyModel(created_at=core.Timestamp(dt), updated_at=core.Timestamp(dt), object_name="foo", some_value=42)
+    assert model == expected
