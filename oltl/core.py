@@ -366,7 +366,9 @@ class BaseEntity(BaseModel, Generic[IdT]):
     DerivedId('...')
     >>> isinstance(x.id, DerivedId)
     True
-    """
+    >>> DerivedEntity.model_json_schema()
+    {'properties': {'id': {'format': 'crockfordBase32', 'title': 'Id', 'type': 'string'}}, 'title': 'DerivedEntity', 'type': 'object'}
+    """  # noqa: E501
 
     id: IdT = Field(default_factory=lambda: cast(IdT, Id.generate()), validate_default=True, frozen=True)
 
@@ -378,7 +380,9 @@ class BaseCreationTimeAwareModel(BaseModel):
     >>> x = DerivedCreationTimeAwareModel()
     >>> x.created_at
     Timestamp(...)
-    """
+    >>> DerivedCreationTimeAwareModel.model_json_schema()
+    {'properties': {'createdAt': {'format': 'timestamp', 'title': 'Createdat', 'type': 'integer'}}, 'title': 'DerivedCreationTimeAwareModel', 'type': 'object'}
+    """  # noqa: E501
 
     created_at: Timestamp = Field(default_factory=Timestamp.now, validate_default=True, frozen=True)
 
@@ -392,7 +396,9 @@ class BaseUpdateTimeAwareModel(BaseCreationTimeAwareModel):
     Timestamp(...)
     >>> x.created_at
     Timestamp(...)
-    """
+    >>> DerivedUpdateTimeAwareModel.model_json_schema()
+    {'properties': {'createdAt': {'format': 'timestamp', 'title': 'Createdat', 'type': 'integer'}, 'updatedAt': {'format': 'timestamp', 'title': 'Updatedat', 'type': 'integer'}}, 'title': 'DerivedUpdateTimeAwareModel', 'type': 'object'}
+    """  # noqa: E501
 
     updated_at: Timestamp = Field(default_factory=Timestamp.now, validate_default=True)
 
