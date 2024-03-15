@@ -103,6 +103,21 @@ def test_created_at_is_immutable() -> None:
         model.created_at = core.Timestamp.now()
 
 
+def test_creation_time_aware_model_seralize_deserialize() -> None:
+    class MyModel(core.BaseCreationTimeAwareModel):
+        object_name: str
+        some_value: int
+
+    dt = datetime(2024, 3, 15, 23, 31, 21, 123456, tzinfo=timezone.utc)
+    with freeze_time(dt):
+        model = MyModel(object_name="foo", some_value=42)
+    actual = model.model_dump_json()
+    serialize_expected = '{"createdAt":1710545481123456,"objectName":"foo","someValue":42}'
+    assert actual == serialize_expected
+    deserialize_expected = model
+    assert MyModel.model_validate_json(actual) == deserialize_expected
+
+
 def test_update_time_aware_model_has_created_at_and_updated_at() -> None:
     class MyModel(core.BaseUpdateTimeAwareModel):
         object_name: str
@@ -147,3 +162,18 @@ def test_setattribute_error_doesnt_renew_updated_at() -> None:
         model.created_at = core.Timestamp.now()
     expected = MyModel(created_at=core.Timestamp(dt), updated_at=core.Timestamp(dt), object_name="foo", some_value=42)
     assert model == expected
+
+
+def test_update_time_aware_model_serialize_deserialize() -> None:
+    class MyModel(core.BaseUpdateTimeAwareModel):
+        object_name: str
+        some_value: int
+
+    dt = datetime(2024, 3, 15, 23, 31, 21, 123456, tzinfo=timezone.utc)
+    with freeze_time(dt):
+        model = MyModel(object_name="foo", some_value=42)
+    actual = model.model_dump_json()
+    serialize_expected = '{"createdAt":1710545481123456,"updatedAt":1710545481123456,"objectName":"foo","someValue":42}'
+    assert actual == serialize_expected
+    deserialize_expected = model
+    assert MyModel.model_validate_json(actual) == deserialize_expected
