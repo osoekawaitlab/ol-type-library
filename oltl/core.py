@@ -151,6 +151,26 @@ class NonEmptyString(LimitedMinLengthMixin, BaseString):
 
 
 class LimitedMaxLengthMixin(ABC, BaseString):
+    """
+    LimitedMaxLengthMixin is a string type that can be used to validate and serialize strings with a maximum length.
+
+    >>> class TestString(LimitedMaxLengthMixin, BaseString):
+    ...   @classmethod
+    ...   def get_max_length(cls) -> int:
+    ...     return 3
+    >>> TestString("test")
+    TestString('test')
+    >>> ta = TypeAdapter(TestString)
+    >>> ta.validate_python("test")
+    Traceback (most recent call last):
+     ...
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), constrained-str]
+      String should have at most 3 characters [type=string_too_long, input_value='test', input_type=str]
+     ...
+    >>> ta.validate_python("te")
+    TestString('te')
+    """
+
     @classmethod
     @abstractmethod
     def get_max_length(cls) -> int:
@@ -162,6 +182,20 @@ class LimitedMaxLengthMixin(ABC, BaseString):
 
 
 class NormalizedStringMixin(ABC, BaseString):
+    """
+    NormalizedStringMixin is a string type that can be used to validate and serialize normalized strings.
+
+    >>> class TestString(NormalizedStringMixin, BaseString):
+    ...   ...
+    >>> TestString("test")
+    TestString('test')
+    >>> ta = TypeAdapter(TestString)
+    >>> ta.validate_python("test")
+    TestString('test')
+    >>> ta.validate_python("test　test")
+    TestString('test test')
+    """
+
     @classmethod
     def _proc_str(cls, s: str) -> str:
         return super()._proc_str(normalize_jptext(s))
