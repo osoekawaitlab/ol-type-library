@@ -19,6 +19,16 @@ class NonEmpty(core.NonEmptyStringMixin):
     pass
 
 
+class LimitedMinMaxLength(core.LimitedMinLengthMixin, core.LimitedMaxLengthMixin):
+    @classmethod
+    def get_min_length(cls) -> int:
+        return 3
+
+    @classmethod
+    def get_max_length(cls) -> int:
+        return 4
+
+
 string_test_cases = [
     (
         LimitedMinLength,
@@ -80,6 +90,41 @@ string_test_cases = [
                 ),
             ),
             ("a", "a"),
+        ),
+    ),
+    (
+        LimitedMinMaxLength,
+        (
+            (
+                "a",
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "string_too_short",
+                            "ctx": {"min_length": 3},
+                            "input": "a",
+                        }
+                    ],
+                ),
+            ),
+            ("abc", "abc"),
+            ("abcd", "abcd"),
+            (
+                "abcde",
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "string_too_long",
+                            "ctx": {"max_length": 4},
+                            "input": "abcde",
+                        }
+                    ],
+                ),
+            ),
         ),
     ),
 ]
