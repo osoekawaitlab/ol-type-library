@@ -49,6 +49,16 @@ class Trimmed(core.TrimmedStringMixin):
     pass
 
 
+class TrimmedNonEmpty(core.TrimmedStringMixin, core.NonEmptyStringMixin):
+    pass
+
+
+class TrimmedMinLength(core.TrimmedStringMixin, core.LimitedMinLengthMixin):
+    @classmethod
+    def get_min_length(cls) -> int:
+        return 3
+
+
 string_test_cases = [
     (
         LimitedMinLength,
@@ -278,6 +288,60 @@ string_test_cases = [
                 "not　trimmed",
             ),
             ("ﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞ", "ﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞ"),
+        ),
+    ),
+    (
+        TrimmedNonEmpty,
+        (
+            (
+                "    ",
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "string_too_short",
+                            "ctx": {"min_length": 1},
+                            "input": "    ",
+                        }
+                    ],
+                ),
+            ),
+            (
+                "　　not　trimmed　　",
+                "not　trimmed",
+            ),
+            (
+                "ﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞ",
+                "ﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞ",
+            ),
+        ),
+    ),
+    (
+        TrimmedMinLength,
+        (
+            (
+                "  a  ",
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "string_too_short",
+                            "ctx": {"min_length": 3},
+                            "input": "  a  ",
+                        }
+                    ],
+                ),
+            ),
+            (
+                "　　not　trimmed　　",
+                "not　trimmed",
+            ),
+            (
+                "ﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞ",
+                "ﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞ",
+            ),
         ),
     ),
 ]
