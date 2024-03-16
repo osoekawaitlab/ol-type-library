@@ -29,6 +29,10 @@ class LimitedMinMaxLength(core.LimitedMinLengthMixin, core.LimitedMaxLengthMixin
         return 4
 
 
+class Normalized(core.NormalizedStringMixin):
+    pass
+
+
 string_test_cases = [
     (
         LimitedMinLength,
@@ -125,6 +129,20 @@ string_test_cases = [
                     ],
                 ),
             ),
+        ),
+    ),
+    (
+        Normalized,
+        (
+            (
+                "already normalized",
+                "already normalized",
+            ),
+            (
+                "　　not　normalized　　",
+                "  not normalized  ",
+            ),
+            ("ﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞ", "バビブベボ"),
         ),
     ),
 ]
