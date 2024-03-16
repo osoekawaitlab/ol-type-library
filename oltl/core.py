@@ -92,6 +92,32 @@ class BaseString(str):
 
 
 class LimitedMinLengthMixin(ABC, BaseString):
+    """
+    LimitedMinLengthMixin is a string type that can be used to validate and serialize strings with a minimum length.
+
+    >>> class TestString(LimitedMinLengthMixin, BaseString):
+    ...   @classmethod
+    ...   def get_min_length(cls) -> int:
+    ...     return 3
+    >>> TestString("test")
+    TestString('test')
+    >>> ta = TypeAdapter(TestString)
+    >>> ta.validate_python("test")
+    TestString('test')
+    >>> ta.validate_python("te")
+    Traceback (most recent call last):
+     ...
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), constrained-str]
+      String should have at least 3 characters [type=string_too_short, input_value='te', input_type=str]
+     ...
+    >>> ta.validate_python("t")
+    Traceback (most recent call last):
+     ...
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), constrained-str]
+      String should have at least 3 characters [type=string_too_short, input_value='t', input_type=str]
+     ...
+    """
+
     @classmethod
     @abstractmethod
     def get_min_length(cls) -> int:
