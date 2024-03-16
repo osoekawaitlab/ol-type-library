@@ -128,10 +128,11 @@ class LimitedMinLengthMixin(ABC, BaseString):
         return super().__get_extra_constraint_dict__() | {"min_length": cls.get_min_length()}
 
 
-class NonEmptyString(LimitedMinLengthMixin, BaseString):
+class NonEmptyStringMixin(LimitedMinLengthMixin):
     """
     NonEmptyString is a string type that can be used to validate and serialize non-empty strings.
-
+    >>> class NonEmptyString(NonEmptyStringMixin):
+    ...   ...
     >>> NonEmptyString.from_str("test")
     NonEmptyString('test')
     >>> ta = TypeAdapter(NonEmptyString)

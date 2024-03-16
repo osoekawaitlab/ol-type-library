@@ -1,7 +1,7 @@
 import re
 from collections.abc import Sequence
 from datetime import datetime, timezone
-from typing import Tuple, Type, Union
+from typing import Tuple, TypeAlias, Union
 
 import pytest
 from freezegun import freeze_time
@@ -53,30 +53,19 @@ def test_derived_entity_has_derived_id(mocker: MockerFixture) -> None:
     assert actual2 == expected2
 
 
-@pytest.mark.parametrize(argnames=["mixins", "test_cases"], argvalues=string_test_cases)
-def test_string_mixins(
-    mixins: Sequence[Type[core.BaseString]], test_cases: Sequence[Tuple[str, Union[ValueError, str]]]
-) -> None:
-
-    class TestString(*mixins):  # type: ignore
-        @classmethod
-        def get_min_length(cls) -> int:
-            return 3
-
-        @classmethod
-        def get_max_length(cls) -> int:
-            return 5
+@pytest.mark.parametrize(argnames=["sut", "test_cases"], argvalues=string_test_cases)
+def test_string_mixins(sut: TypeAlias, test_cases: Sequence[Tuple[str, Union[ValueError, str]]]) -> None:
 
     class TestModel(core.BaseModel):
-        name: TestString
+        value: sut
 
     for test_case, expected in test_cases:
         if isinstance(expected, Exception):
             with pytest.raises(expected.__class__, match=re.escape(expected.__str__())):
-                TestModel(name=test_case)
+                TestModel(value=test_case)
         else:
-            actual = TestModel(name=test_case)
-            assert actual.name == expected
+            actual = TestModel(value=test_case)
+            assert actual.value == expected
 
 
 def test_entity_id_is_immutable() -> None:
