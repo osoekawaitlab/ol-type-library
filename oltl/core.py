@@ -200,6 +200,26 @@ class NormalizedStringMixin(ABC, BaseString):
         return super()._proc_str(normalize_jptext(s))
 
 
+class TrimmedStringMixin(ABC, BaseString):
+    """
+    TrimmedStringMixin is a string type that can be used to validate and serialize trimmed strings.
+
+    >>> class TestString(TrimmedStringMixin, BaseString):
+    ...   ...
+    >>> TestString("test")
+    TestString('test')
+    >>> ta = TypeAdapter(TestString)
+    >>> ta.validate_python("test")
+    TestString('test')
+    >>> ta.validate_python(" test ")
+    TestString('test')
+    """
+
+    @classmethod
+    def __get_extra_constraint_dict__(cls) -> dict[str, Any]:
+        return super().__get_extra_constraint_dict__() | {"strip_whitespace": True}
+
+
 class Id(ULID):
     r"""Id is a string type that can be used to validate and serialize ULID strings.
 

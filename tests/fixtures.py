@@ -39,6 +39,16 @@ class NormalizedMinLength(core.NormalizedStringMixin, core.LimitedMinLengthMixin
         return 3
 
 
+class NormalizedMaxLength(core.NormalizedStringMixin, core.LimitedMaxLengthMixin):
+    @classmethod
+    def get_max_length(cls) -> int:
+        return 4
+
+
+class Trimmed(core.TrimmedStringMixin):
+    pass
+
+
 string_test_cases = [
     (
         LimitedMinLength,
@@ -91,6 +101,20 @@ string_test_cases = [
                             "type": "string_too_long",
                             "ctx": {"max_length": 4},
                             "input": "abcde",
+                        }
+                    ],
+                ),
+            ),
+            (
+                "ﾊﾞﾋﾞﾌﾞ",
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "string_too_long",
+                            "ctx": {"max_length": 4},
+                            "input": "ﾊﾞﾋﾞﾌﾞ",
                         }
                     ],
                 ),
@@ -215,6 +239,45 @@ string_test_cases = [
                     ],
                 ),
             ),
+        ),
+    ),
+    (
+        NormalizedMaxLength,
+        (
+            ("a", "a"),
+            (
+                "　a　",
+                " a ",
+            ),
+            ("ﾊﾞﾋﾞﾌﾞ", "バビブ"),
+            (
+                "　　　　　",
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "string_too_long",
+                            "ctx": {"max_length": 4},
+                            "input": "     ",
+                        }
+                    ],
+                ),
+            ),
+        ),
+    ),
+    (
+        Trimmed,
+        (
+            (
+                "already trimmed",
+                "already trimmed",
+            ),
+            (
+                "　　not　trimmed　　",
+                "not　trimmed",
+            ),
+            ("ﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞ", "ﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞ"),
         ),
     ),
 ]
