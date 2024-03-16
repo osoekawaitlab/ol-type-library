@@ -1,4 +1,7 @@
+import re
+from collections.abc import Sequence
 from datetime import datetime, timezone
+from typing import Tuple, Type, Union
 
 import pytest
 from freezegun import freeze_time
@@ -7,6 +10,8 @@ from pytest_mock import MockerFixture
 from ulid import ULID
 
 from oltl import core
+
+from .fixtures import string_test_cases
 
 
 def test_id_generates_inherited_class_instance() -> None:
@@ -46,6 +51,32 @@ def test_derived_entity_has_derived_id(mocker: MockerFixture) -> None:
     actual2 = MyEntity(name="bar")
     expected2 = MyEntity(id=MyId("01HRY76260XZ597W8QF1745BV1"), name="bar")
     assert actual2 == expected2
+
+
+@pytest.mark.parametrize(argnames=["mixins", "test_cases"], argvalues=string_test_cases)
+def test_string_mixins(
+    mixins: Sequence[Type[core.BaseString]], test_cases: Sequence[Tuple[str, Union[ValueError, str]]]
+) -> None:
+
+    class TestString(*mixins):  # type: ignore
+        @classmethod
+        def get_min_length(cls) -> int:
+            return 3
+
+        @classmethod
+        def get_max_length(cls) -> int:
+            return 5
+
+    class TestModel(core.BaseModel):
+        name: TestString
+
+    for test_case, expected in test_cases:
+        if isinstance(expected, Exception):
+            with pytest.raises(expected.__class__, match=re.escape(expected.__str__())):
+                TestModel(name=test_case)
+        else:
+            actual = TestModel(name=test_case)
+            assert actual.name == expected
 
 
 def test_entity_id_is_immutable() -> None:
