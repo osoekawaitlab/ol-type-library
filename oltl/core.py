@@ -18,6 +18,8 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 from ulid import ULID
 
+from .utils import normalize_jptext
+
 StrT = TypeVar("StrT", bound="BaseString")
 IdT = TypeVar("IdT", bound="Id")
 IncEx: TypeAlias = "set[int] | set[str] | dict[int, IncEx] | dict[str, IncEx] | None"
@@ -131,6 +133,12 @@ class LimitedMaxLengthMixin(ABC, BaseString):
     @classmethod
     def __get_extra_constraint_dict__(cls) -> dict[str, Any]:
         return super().__get_extra_constraint_dict__() | {"max_length": cls.get_max_length()}
+
+
+class NormalizedStringMixin(ABC, BaseString):
+    @classmethod
+    def _proc_str(cls, s: str) -> str:
+        return super()._proc_str(normalize_jptext(s))
 
 
 class Id(ULID):
