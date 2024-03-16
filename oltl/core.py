@@ -39,7 +39,7 @@ class BaseString(str):
     >>> ta.validate_python(1)
     Traceback (most recent call last):
      ...
-    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), str]
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[BaseString(), function-before[_proc_str(), str]]
       Input should be a valid string [type=string_type, input_value=1, input_type=int]
      ...
     >>> ta.dump_json(BaseString("test_test"))
@@ -52,7 +52,7 @@ class BaseString(str):
     True
     >>> ta.validate_python("test　test")
     BaseString('test　test')
-    """
+    """  # noqa: E501
 
     @classmethod
     def _proc_str(cls, s: str) -> str:
@@ -67,14 +67,12 @@ class BaseString(str):
     @classmethod
     def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
         return core_schema.no_info_after_validator_function(
-            cls.validate,
-            core_schema.str_schema(**cls.__get_extra_constraint_dict__()),
+            cls,
+            core_schema.no_info_before_validator_function(
+                cls._proc_str, core_schema.str_schema(**cls.__get_extra_constraint_dict__())
+            ),
             serialization=core_schema.plain_serializer_function_ser_schema(cls.serialize, when_used="json"),
         )
-
-    @classmethod
-    def validate(cls: Type[StrT], v: Any) -> StrT:
-        return cls(cls._proc_str(v))
 
     def serialize(self) -> str:
         return str(self)
@@ -107,16 +105,16 @@ class LimitedMinLengthMixin(ABC, BaseString):
     >>> ta.validate_python("te")
     Traceback (most recent call last):
      ...
-    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), constrained-str]
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[TestString(), function-before[_proc_str(), constrained-str]]
       String should have at least 3 characters [type=string_too_short, input_value='te', input_type=str]
      ...
     >>> ta.validate_python("t")
     Traceback (most recent call last):
      ...
-    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), constrained-str]
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[TestString(), function-before[_proc_str(), constrained-str]]
       String should have at least 3 characters [type=string_too_short, input_value='t', input_type=str]
      ...
-    """
+    """  # noqa: E501
 
     @classmethod
     @abstractmethod
@@ -141,10 +139,10 @@ class NonEmptyStringMixin(LimitedMinLengthMixin):
     >>> ta.validate_python("")
     Traceback (most recent call last):
      ...
-    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), constrained-str]
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[NonEmptyString(), function-before[_proc_str(), constrained-str]]
       String should have at least 1 character [type=string_too_short, input_value='', input_type=str]
      ...
-    """
+    """  # noqa: E501
 
     @classmethod
     def get_min_length(cls) -> int:
@@ -165,12 +163,12 @@ class LimitedMaxLengthMixin(ABC, BaseString):
     >>> ta.validate_python("test")
     Traceback (most recent call last):
      ...
-    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), constrained-str]
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[TestString(), function-before[_proc_str(), constrained-str]]
       String should have at most 3 characters [type=string_too_long, input_value='test', input_type=str]
      ...
     >>> ta.validate_python("te")
     TestString('te')
-    """
+    """  # noqa: E501
 
     @classmethod
     @abstractmethod

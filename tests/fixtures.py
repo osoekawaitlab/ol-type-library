@@ -33,6 +33,12 @@ class Normalized(core.NormalizedStringMixin):
     pass
 
 
+class NormalizedMinLength(core.NormalizedStringMixin, core.LimitedMinLengthMixin):
+    @classmethod
+    def get_min_length(cls) -> int:
+        return 3
+
+
 string_test_cases = [
     (
         LimitedMinLength,
@@ -53,6 +59,21 @@ string_test_cases = [
             ),
             ("abc", "abc"),
             ("abcde", "abcde"),
+            ("ﾊﾞﾋﾞ", "ﾊﾞﾋﾞ"),
+            (
+                "バビ",
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "string_too_short",
+                            "ctx": {"min_length": 3},
+                            "input": "バビ",
+                        }
+                    ],
+                ),
+            ),
         ),
     ),
     (
@@ -143,6 +164,57 @@ string_test_cases = [
                 "  not normalized  ",
             ),
             ("ﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞ", "バビブベボ"),
+        ),
+    ),
+    (
+        NormalizedMinLength,
+        (
+            (
+                "a",
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "string_too_short",
+                            "ctx": {"min_length": 3},
+                            "input": "a",
+                        }
+                    ],
+                ),
+            ),
+            (
+                "　　not　normalized　　",
+                "  not normalized  ",
+            ),
+            (
+                "バビ",
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "string_too_short",
+                            "ctx": {"min_length": 3},
+                            "input": "バビ",
+                        }
+                    ],
+                ),
+            ),
+            (
+                "ﾊﾞﾋﾞ",
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "string_too_short",
+                            "ctx": {"min_length": 3},
+                            "input": "バビ",
+                        }
+                    ],
+                ),
+            ),
         ),
     ),
 ]
