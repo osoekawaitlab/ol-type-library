@@ -59,6 +59,16 @@ class TrimmedMinLength(core.TrimmedStringMixin, core.LimitedMinLengthMixin):
         return 3
 
 
+class TrimmedMaxLength(core.TrimmedStringMixin, core.LimitedMaxLengthMixin):
+    @classmethod
+    def get_max_length(cls) -> int:
+        return 4
+
+
+class TrimmedNormalized(core.TrimmedStringMixin, core.NormalizedStringMixin):
+    pass
+
+
 string_test_cases = [
     (
         LimitedMinLength,
@@ -341,6 +351,37 @@ string_test_cases = [
             (
                 "ﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞ",
                 "ﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞ",
+            ),
+        ),
+    ),
+    (
+        TrimmedMaxLength,
+        (
+            ("a", "a"),
+            (
+                "　a　",
+                "a",
+            ),
+            (
+                "　zz　z　　　",
+                "zz　z",
+            ),
+        ),
+    ),
+    (
+        TrimmedNormalized,
+        (
+            (
+                "already trimmed and normalized",
+                "already trimmed and normalized",
+            ),
+            (
+                "　　not　trimmed　　",
+                "not trimmed",
+            ),
+            (
+                " ﾊﾞ ﾋﾞ ﾌﾞ ﾍﾞ ﾎﾞ ",
+                "バ ビ ブ ベ ボ",
             ),
         ),
     ),
