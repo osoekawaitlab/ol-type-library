@@ -69,6 +69,10 @@ class TrimmedNormalized(core.TrimmedStringMixin, core.NormalizedStringMixin):
     pass
 
 
+class SnakeCase(core.SnakeCaseStringMixin):
+    pass
+
+
 string_test_cases = [
     (
         LimitedMinLength,
@@ -382,6 +386,32 @@ string_test_cases = [
             (
                 " ﾊﾞ ﾋﾞ ﾌﾞ ﾍﾞ ﾎﾞ ",
                 "バ ビ ブ ベ ボ",
+            ),
+        ),
+    ),
+    (
+        SnakeCase,
+        (
+            (
+                "already_snake_case",
+                "already_snake_case",
+            ),
+            (
+                "camelCase",
+                "camel_case",
+            ),
+            (
+                "PascalCase",
+                "pascal_case",
+            ),
+            (
+                "kebab-case",
+                "kebab-case",
+            ),
+            ("UPPER_CASE", "upper_case"),
+            (
+                "ｱｲｳｴｵ",
+                "ｱｲｳｴｵ",
             ),
         ),
     ),

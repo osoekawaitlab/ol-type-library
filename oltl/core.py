@@ -13,7 +13,7 @@ from pydantic import (
     GetJsonSchemaHandler,
     TypeAdapter,
 )
-from pydantic.alias_generators import to_camel
+from pydantic.alias_generators import to_camel, to_snake
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 from ulid import ULID
@@ -218,6 +218,28 @@ class TrimmedStringMixin(ABC, BaseString):
     @classmethod
     def __get_extra_constraint_dict__(cls) -> dict[str, Any]:
         return super().__get_extra_constraint_dict__() | {"strip_whitespace": True}
+
+
+class SnakeCaseStringMixin(ABC, BaseString):
+    """
+    SnakeCaseStringMixin is a string type that can be used to validate and serialize snake_case strings.
+
+    >>> class TestString(SnakeCaseStringMixin, BaseString):
+    ...   ...
+    >>> TestString("test")
+    TestString('test')
+    >>> ta = TypeAdapter(TestString)
+    >>> ta.validate_python("test")
+    TestString('test')
+    >>> ta.validate_python("test_test")
+    TestString('test_test')
+    >>> ta.validate_python("testTest")
+    TestString('test_test')
+    """
+
+    @classmethod
+    def _proc_str(cls, s: str) -> str:
+        return super()._proc_str(to_snake(s))
 
 
 class Id(ULID):
