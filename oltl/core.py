@@ -1,3 +1,4 @@
+import re
 from abc import ABC, abstractmethod
 from datetime import datetime as _datetime
 from datetime import timezone as _timezone
@@ -198,6 +199,36 @@ class NormalizedStringMixin(ABC, BaseString):
     @classmethod
     def _proc_str(cls, s: str) -> str:
         return super()._proc_str(normalize_jptext(s))
+
+
+class RegexSubstitutedStringMixin(ABC, BaseString):
+    r"""
+    RegexSubstitutedStringMixin is a string type that substitute strings by regular expression.
+
+    >>> class TestString(RegexSubstitutedStringMixin, BaseString):
+    ...   @classmethod
+    ...   def get_pattern(cls) -> str:
+    ...     return r"[\n\r]"
+    ...   @classmethod
+    ...   def get_repl(cls) -> str:
+    ...     return " "
+    >>> TestString.from_str("test\ntest")
+    TestString('test test')
+    """
+
+    @classmethod
+    @abstractmethod
+    def get_pattern(cls) -> str:
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
+    def get_repl(cls) -> str:
+        raise NotImplementedError
+
+    @classmethod
+    def _proc_str(cls, s: str) -> str:
+        return super()._proc_str(re.sub(cls.get_pattern(), cls.get_repl(), s))
 
 
 class TrimmedStringMixin(ABC, BaseString):
