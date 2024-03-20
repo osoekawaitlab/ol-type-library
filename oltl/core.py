@@ -295,6 +295,11 @@ class CamelCaseStringMixin(ABC, BaseString):
         return super()._proc_str(to_camel(s))
 
 
+class TypeString(NormalizedStringMixin, SnakeCaseStringMixin, TrimmedStringMixin, NonEmptyStringMixin):
+    def serialize(self) -> str:
+        return to_camel(super(TypeString, self).serialize())
+
+
 class Id(ULID):
     r"""Id is a string type that can be used to validate and serialize ULID strings.
 
