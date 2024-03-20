@@ -77,6 +77,31 @@ def test_type_string() -> None:
     assert actual.model_dump_json() == '{"value":"snakeCaseInPythonCamelCaseInJson"}'
 
 
+def test_type_string_enum_serialize() -> None:
+    class MyTypeStringEnum(core.TypeStringEnum):
+        ITEM = "item"
+        OTHER_ITEM = "other_item"
+
+    class ModelIncludingTypeStringEnum(core.BaseModel):
+        value: MyTypeStringEnum
+
+    actual = ModelIncludingTypeStringEnum(value="other_item")
+    assert actual.value == MyTypeStringEnum.OTHER_ITEM
+    assert actual.model_dump_json() == '{"value":"otherItem"}'
+
+
+def test_type_string_enum_deserialize() -> None:
+    class MyTypeStringEnum(core.TypeStringEnum):
+        ITEM = "item"
+        OTHER_ITEM = "other_item"
+
+    class ModelIncludingTypeStringEnum(core.BaseModel):
+        value: MyTypeStringEnum
+
+    actual = ModelIncludingTypeStringEnum.model_validate_json('{"value":"otherItem"}')
+    assert actual.value == MyTypeStringEnum.OTHER_ITEM
+
+
 def test_entity_id_is_immutable() -> None:
     class MyId(core.Id): ...
 
