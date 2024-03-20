@@ -1,5 +1,4 @@
 import re
-from abc import ABC, abstractmethod
 from datetime import datetime as _datetime
 from datetime import timezone as _timezone
 from typing import Any, Generic, Type, TypeAlias, TypeVar, Union, cast
@@ -90,7 +89,7 @@ class BaseString(str):
         return TypeAdapter(cls).validate_python(v)
 
 
-class LimitedMinLengthMixin(ABC, BaseString):
+class LimitedMinLengthMixin(BaseString):
     """
     LimitedMinLengthMixin is a string type that can be used to validate and serialize strings with a minimum length.
 
@@ -118,7 +117,6 @@ class LimitedMinLengthMixin(ABC, BaseString):
     """  # noqa: E501
 
     @classmethod
-    @abstractmethod
     def get_min_length(cls) -> int:
         raise NotImplementedError
 
@@ -127,7 +125,7 @@ class LimitedMinLengthMixin(ABC, BaseString):
         return super().__get_extra_constraint_dict__() | {"min_length": cls.get_min_length()}
 
 
-class NonEmptyStringMixin(LimitedMinLengthMixin):
+class NonEmptyStringMixin(LimitedMinLengthMixin, metaclass=type):
     """
     NonEmptyString is a string type that can be used to validate and serialize non-empty strings.
     >>> class NonEmptyString(NonEmptyStringMixin):
@@ -150,7 +148,7 @@ class NonEmptyStringMixin(LimitedMinLengthMixin):
         return 1
 
 
-class LimitedMaxLengthMixin(ABC, BaseString):
+class LimitedMaxLengthMixin(BaseString):
     """
     LimitedMaxLengthMixin is a string type that can be used to validate and serialize strings with a maximum length.
 
@@ -172,7 +170,6 @@ class LimitedMaxLengthMixin(ABC, BaseString):
     """  # noqa: E501
 
     @classmethod
-    @abstractmethod
     def get_max_length(cls) -> int:
         raise NotImplementedError
 
@@ -181,7 +178,7 @@ class LimitedMaxLengthMixin(ABC, BaseString):
         return super().__get_extra_constraint_dict__() | {"max_length": cls.get_max_length()}
 
 
-class NormalizedStringMixin(ABC, BaseString):
+class NormalizedStringMixin(BaseString):
     """
     NormalizedStringMixin is a string type that can be used to validate and serialize normalized strings.
 
@@ -201,7 +198,7 @@ class NormalizedStringMixin(ABC, BaseString):
         return super()._proc_str(normalize_jptext(s))
 
 
-class RegexSubstitutedStringMixin(ABC, BaseString):
+class RegexSubstitutedStringMixin(BaseString):
     r"""
     RegexSubstitutedStringMixin is a string type that substitute strings by regular expression.
 
@@ -217,12 +214,10 @@ class RegexSubstitutedStringMixin(ABC, BaseString):
     """
 
     @classmethod
-    @abstractmethod
     def get_pattern(cls) -> str:
         raise NotImplementedError
 
     @classmethod
-    @abstractmethod
     def get_repl(cls) -> str:
         raise NotImplementedError
 
@@ -231,7 +226,7 @@ class RegexSubstitutedStringMixin(ABC, BaseString):
         return super()._proc_str(re.sub(cls.get_pattern(), cls.get_repl(), s))
 
 
-class TrimmedStringMixin(ABC, BaseString):
+class TrimmedStringMixin(BaseString):
     """
     TrimmedStringMixin is a string type that can be used to validate and serialize trimmed strings.
 
@@ -251,7 +246,7 @@ class TrimmedStringMixin(ABC, BaseString):
         return super().__get_extra_constraint_dict__() | {"strip_whitespace": True}
 
 
-class SnakeCaseStringMixin(ABC, BaseString):
+class SnakeCaseStringMixin(BaseString):
     """
     SnakeCaseStringMixin is a string type that can be used to validate and serialize snake_case strings.
 
@@ -273,7 +268,7 @@ class SnakeCaseStringMixin(ABC, BaseString):
         return super()._proc_str(to_snake(s))
 
 
-class CamelCaseStringMixin(ABC, BaseString):
+class CamelCaseStringMixin(BaseString):
     """
     CamelCaseStringMixin is a string type that can be used to validate and serialize camelCase strings.
 
@@ -295,7 +290,7 @@ class CamelCaseStringMixin(ABC, BaseString):
         return super()._proc_str(to_camel(s))
 
 
-class TypeString(NormalizedStringMixin, SnakeCaseStringMixin, TrimmedStringMixin, NonEmptyStringMixin):
+class TypeString(NormalizedStringMixin, SnakeCaseStringMixin, TrimmedStringMixin, NonEmptyStringMixin, metaclass=type):
     def serialize(self) -> str:
         return to_camel(super(TypeString, self).serialize())
 
