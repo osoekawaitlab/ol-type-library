@@ -73,6 +73,14 @@ class SnakeCase(core.SnakeCaseStringMixin):
     pass
 
 
+class NormalizedSnakeCase(core.NormalizedStringMixin, core.SnakeCaseStringMixin):
+    pass
+
+
+class SnakeCaseNormalized(core.SnakeCaseStringMixin, core.NormalizedStringMixin):
+    pass
+
+
 string_test_cases = [
     (
         LimitedMinLength,
@@ -384,6 +392,10 @@ string_test_cases = [
                 "not trimmed",
             ),
             (
+                " not trimmed and ｎｏｔ　ｎｏｒｍａｌｉｚｅｄ　 \t",
+                "not trimmed and not normalized",
+            ),
+            (
                 " ﾊﾞ ﾋﾞ ﾌﾞ ﾍﾞ ﾎﾞ ",
                 "バ ビ ブ ベ ボ",
             ),
@@ -412,6 +424,36 @@ string_test_cases = [
             (
                 "ｱｲｳｴｵ",
                 "ｱｲｳｴｵ",
+            ),
+            (
+                "ｓＮｅａｋ＿ｃａｓｅ",
+                "ｓｎｅａｋ＿ｃａｓｅ",
+            ),
+        ),
+    ),
+    (
+        NormalizedSnakeCase,
+        (
+            (
+                "ｎｏｔＮｏｒｍａｌｉｚｅｄCamelCase",
+                "not_normalized_camel_case",
+            ),
+            (
+                "  ﾉｰﾏﾗｲｽﾞ　ｻﾚﾃｲﾅｲ PascalCase  ",
+                "  ノーマライズ サレテイナイ pascal_case  ",
+            ),
+        ),
+    ),
+    (
+        SnakeCaseNormalized,
+        (
+            (
+                "ｎｏｔＮｏｒｍａｌｉｚｅｄCamelCase",
+                "notnormalizedcamel_case",
+            ),
+            (
+                "  ﾉｰﾏﾗｲｽﾞ　ｻﾚﾃｲﾅｲ PascalCase  ",
+                "  ノーマライズ サレテイナイ pascal_case  ",
             ),
         ),
     ),
