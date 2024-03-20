@@ -273,6 +273,28 @@ class SnakeCaseStringMixin(ABC, BaseString):
         return super()._proc_str(to_snake(s))
 
 
+class CamelCaseStringMixin(ABC, BaseString):
+    """
+    CamelCaseStringMixin is a string type that can be used to validate and serialize camelCase strings.
+
+    >>> class TestString(CamelCaseStringMixin, BaseString):
+    ...   ...
+    >>> TestString("test")
+    TestString('test')
+    >>> ta = TypeAdapter(TestString)
+    >>> ta.validate_python("test")
+    TestString('test')
+    >>> ta.validate_python("test_test")
+    TestString('testTest')
+    >>> ta.validate_python("alreadyCamelCasedWillBeLowerCased")
+    TestString('alreadycamelcasedwillbelowercased')
+    """
+
+    @classmethod
+    def _proc_str(cls, s: str) -> str:
+        return super()._proc_str(to_camel(s))
+
+
 class Id(ULID):
     r"""Id is a string type that can be used to validate and serialize ULID strings.
 
