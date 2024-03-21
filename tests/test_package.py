@@ -18,19 +18,3 @@ def test_oltl_has_timestamp() -> None:
     expected = 1627574400000000
     actual = oltl.Timestamp("2021-07-29T16:00:00Z")
     assert actual == expected
-
-
-def test_oltl_has_type_string() -> None:
-    expected = "snake_case_in_python_camel_case_in_json"
-    actual = oltl.TypeString.from_str("snake_case_in_python_camel_case_in_json")
-    assert actual == expected
-
-
-def test_oltl_has_type_string_enum() -> None:
-    assert hasattr(oltl, "TypeStringEnum")
-
-    class MyTypeStringEnum(oltl.TypeStringEnum):
-        ITEM = "item"
-        OTHER_ITEM = "other_item"
-
-    assert isinstance(MyTypeStringEnum.ITEM, oltl.core.TypeString)

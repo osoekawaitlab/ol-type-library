@@ -1,7 +1,6 @@
 import re
 from datetime import datetime as _datetime
 from datetime import timezone as _timezone
-from enum import Enum
 from typing import Any, Generic, Type, TypeAlias, TypeVar, Union, cast
 
 import ulid
@@ -289,16 +288,6 @@ class CamelCaseStringMixin(BaseString):
     @classmethod
     def _proc_str(cls, s: str) -> str:
         return super()._proc_str(to_camel(s))
-
-
-class TypeString(NormalizedStringMixin, SnakeCaseStringMixin, TrimmedStringMixin, NonEmptyStringMixin, metaclass=type):
-    def serialize(self) -> str:
-        return to_camel(super(TypeString, self).serialize())
-
-
-class TypeStringEnum(TypeString, Enum):
-    def __str__(self) -> str:
-        return str(self.value)
 
 
 class Id(ULID):

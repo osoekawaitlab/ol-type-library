@@ -68,40 +68,6 @@ def test_string_mixins(sut: TypeAlias, test_cases: Sequence[Tuple[str, Union[Val
             assert actual.value == expected
 
 
-def test_type_string() -> None:
-    class ModelIncludingTypeString(core.BaseModel):
-        value: core.TypeString
-
-    actual = ModelIncludingTypeString(value="snake_case_in_python_camel_case_in_json")
-    assert actual.value == "snake_case_in_python_camel_case_in_json"
-    assert actual.model_dump_json() == '{"value":"snakeCaseInPythonCamelCaseInJson"}'
-
-
-def test_type_string_enum_serialize() -> None:
-    class MyTypeStringEnum(core.TypeStringEnum):
-        ITEM = "item"
-        OTHER_ITEM = "other_item"
-
-    class ModelIncludingTypeStringEnum(core.BaseModel):
-        value: MyTypeStringEnum
-
-    actual = ModelIncludingTypeStringEnum(value="other_item")
-    assert actual.value == MyTypeStringEnum.OTHER_ITEM
-    assert actual.model_dump_json() == '{"value":"otherItem"}'
-
-
-def test_type_string_enum_deserialize() -> None:
-    class MyTypeStringEnum(core.TypeStringEnum):
-        ITEM = "item"
-        OTHER_ITEM = "other_item"
-
-    class ModelIncludingTypeStringEnum(core.BaseModel):
-        value: MyTypeStringEnum
-
-    actual = ModelIncludingTypeStringEnum.model_validate_json('{"value":"otherItem"}')
-    assert actual.value == MyTypeStringEnum.OTHER_ITEM
-
-
 def test_entity_id_is_immutable() -> None:
     class MyId(core.Id): ...
 
