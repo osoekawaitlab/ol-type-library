@@ -31,3 +31,15 @@ def test_oltl_has_base_creation_time_aware_model() -> None:
 
 def test_oltl_has_base_update_time_aware_model() -> None:
     oltl.BaseCreationTimeAwareModel == core.BaseCreationTimeAwareModel
+
+
+def test_oltl_has_string_mixins() -> None:
+    oltl.BaseString == core.BaseString
+    oltl.LimitedMinLengthMixin == core.LimitedMinLengthMixin
+    oltl.NonEmptyStringMixin == core.NonEmptyStringMixin
+    oltl.LimitedMaxLengthMixin == core.LimitedMaxLengthMixin
+    oltl.NormalizedStringMixin == core.NormalizedStringMixin
+    oltl.RegexSubstitutedStringMixin == core.RegexSubstitutedStringMixin
+    oltl.TrimmedStringMixin == core.TrimmedStringMixin
+    oltl.SnakeCaseStringMixin == core.SnakeCaseStringMixin
+    oltl.CamelCaseStringMixin == core.CamelCaseStringMixin
