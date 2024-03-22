@@ -28,3 +28,16 @@ def test_oltl_has_base_model() -> None:
     actual = MyModel(object_name="foo", some_value=42)
     expected = '{"objectName":"foo","someValue":42}'
     assert actual.model_dump_json() == expected
+
+
+def test_oltl_has_base_entity() -> None:
+    class MyId(oltl.Id): ...
+
+    class MyEntity(oltl.BaseEntity[MyId]):
+        entity_name: str
+
+    entity = MyEntity(id=MyId("01HRQ0KA867PDGYJXAVGKG3R1V"), entity_name="foo")
+    actual = entity.model_dump_json()
+    expected = '{"id":"01HRQ0KA867PDGYJXAVGKG3R1V","entityName":"foo"}'
+    assert actual == expected
+    assert MyEntity.model_validate_json(actual) == entity
