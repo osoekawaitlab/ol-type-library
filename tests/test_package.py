@@ -1,4 +1,7 @@
 import re
+from datetime import datetime
+
+from freezegun import freeze_time
 
 import oltl
 
@@ -41,3 +44,25 @@ def test_oltl_has_base_entity() -> None:
     expected = '{"id":"01HRQ0KA867PDGYJXAVGKG3R1V","entityName":"foo"}'
     assert actual == expected
     assert MyEntity.model_validate_json(actual) == entity
+
+
+def test_oltl_has_base_creation_time_aware_model() -> None:
+    class MyModel(oltl.BaseCreationTimeAwareModel):
+        object_name: str
+        some_value: int
+
+    with freeze_time(datetime(2024, 3, 23, 1, 22, 24, 123456)):
+        actual = MyModel(object_name="foo", some_value=42)
+        expected = '{"createdAt":1711156944123456,"objectName":"foo","someValue":42}'
+        assert actual.model_dump_json() == expected
+
+
+def test_oltl_has_base_update_time_aware_model() -> None:
+    class MyModel(oltl.BaseUpdateTimeAwareModel):
+        object_name: str
+        some_value: int
+
+    with freeze_time(datetime(2024, 3, 23, 1, 25, 9, 123456)):
+        actual = MyModel(object_name="foo", some_value=42)
+        expected = '{"createdAt":1711157109123456,"updatedAt":1711157109123456,"objectName":"foo","someValue":42}'
+        assert actual.model_dump_json() == expected
