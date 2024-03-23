@@ -3,23 +3,23 @@ from pydantic import ValidationError
 from oltl import core
 
 
-class LimitedMinLength(core.LimitedMinLengthMixin):
+class LimitedMinLength(core.LimitedMinLengthMixIn):
     @classmethod
     def get_min_length(cls) -> int:
         return 3
 
 
-class LimitedMaxLength(core.LimitedMaxLengthMixin):
+class LimitedMaxLength(core.LimitedMaxLengthMixIn):
     @classmethod
     def get_max_length(cls) -> int:
         return 4
 
 
-class NonEmpty(core.NonEmptyStringMixin):
+class NonEmpty(core.NonEmptyStringMixIn):
     pass
 
 
-class LimitedMinMaxLength(core.LimitedMinLengthMixin, core.LimitedMaxLengthMixin):
+class LimitedMinMaxLength(core.LimitedMinLengthMixIn, core.LimitedMaxLengthMixIn):
     @classmethod
     def get_min_length(cls) -> int:
         return 3
@@ -29,55 +29,55 @@ class LimitedMinMaxLength(core.LimitedMinLengthMixin, core.LimitedMaxLengthMixin
         return 4
 
 
-class Normalized(core.NormalizedStringMixin):
+class Normalized(core.NormalizedStringMixIn):
     pass
 
 
-class NormalizedMinLength(core.NormalizedStringMixin, core.LimitedMinLengthMixin):
+class NormalizedMinLength(core.NormalizedStringMixIn, core.LimitedMinLengthMixIn):
     @classmethod
     def get_min_length(cls) -> int:
         return 3
 
 
-class NormalizedMaxLength(core.NormalizedStringMixin, core.LimitedMaxLengthMixin):
+class NormalizedMaxLength(core.NormalizedStringMixIn, core.LimitedMaxLengthMixIn):
     @classmethod
     def get_max_length(cls) -> int:
         return 4
 
 
-class Trimmed(core.TrimmedStringMixin):
+class Trimmed(core.TrimmedStringMixIn):
     pass
 
 
-class TrimmedNonEmpty(core.TrimmedStringMixin, core.NonEmptyStringMixin):
+class TrimmedNonEmpty(core.TrimmedStringMixIn, core.NonEmptyStringMixIn):
     pass
 
 
-class TrimmedMinLength(core.TrimmedStringMixin, core.LimitedMinLengthMixin):
+class TrimmedMinLength(core.TrimmedStringMixIn, core.LimitedMinLengthMixIn):
     @classmethod
     def get_min_length(cls) -> int:
         return 3
 
 
-class TrimmedMaxLength(core.TrimmedStringMixin, core.LimitedMaxLengthMixin):
+class TrimmedMaxLength(core.TrimmedStringMixIn, core.LimitedMaxLengthMixIn):
     @classmethod
     def get_max_length(cls) -> int:
         return 4
 
 
-class TrimmedNormalized(core.TrimmedStringMixin, core.NormalizedStringMixin):
+class TrimmedNormalized(core.TrimmedStringMixIn, core.NormalizedStringMixIn):
     pass
 
 
-class SnakeCase(core.SnakeCaseStringMixin):
+class SnakeCase(core.SnakeCaseStringMixIn):
     pass
 
 
-class NormalizedSnakeCase(core.NormalizedStringMixin, core.SnakeCaseStringMixin):
+class NormalizedSnakeCase(core.NormalizedStringMixIn, core.SnakeCaseStringMixIn):
     pass
 
 
-class SnakeCaseNormalized(core.SnakeCaseStringMixin, core.NormalizedStringMixin):
+class SnakeCaseNormalized(core.SnakeCaseStringMixIn, core.NormalizedStringMixIn):
     pass
 
 

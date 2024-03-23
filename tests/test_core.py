@@ -54,7 +54,7 @@ def test_derived_entity_has_derived_id(mocker: MockerFixture) -> None:
 
 
 @pytest.mark.parametrize(argnames=["sut", "test_cases"], argvalues=string_test_cases)
-def test_string_mixins(sut: TypeAlias, test_cases: Sequence[Tuple[str, Union[ValueError, str]]]) -> None:
+def test_string_MixIns(sut: TypeAlias, test_cases: Sequence[Tuple[str, Union[ValueError, str]]]) -> None:
 
     class TestModel(core.BaseModel):
         value: sut

@@ -89,11 +89,11 @@ class BaseString(str):
         return TypeAdapter(cls).validate_python(v)
 
 
-class LimitedMinLengthMixin(BaseString):
+class LimitedMinLengthMixIn(BaseString):
     """
-    LimitedMinLengthMixin is a string type that can be used to validate and serialize strings with a minimum length.
+    LimitedMinLengthMixIn is a string type that can be used to validate and serialize strings with a minimum length.
 
-    >>> class TestString(LimitedMinLengthMixin, BaseString):
+    >>> class TestString(LimitedMinLengthMixIn, BaseString):
     ...   @classmethod
     ...   def get_min_length(cls) -> int:
     ...     return 3
@@ -125,10 +125,10 @@ class LimitedMinLengthMixin(BaseString):
         return super().__get_extra_constraint_dict__() | {"min_length": cls.get_min_length()}
 
 
-class NonEmptyStringMixin(LimitedMinLengthMixin, metaclass=type):
+class NonEmptyStringMixIn(LimitedMinLengthMixIn, metaclass=type):
     """
     NonEmptyString is a string type that can be used to validate and serialize non-empty strings.
-    >>> class NonEmptyString(NonEmptyStringMixin):
+    >>> class NonEmptyString(NonEmptyStringMixIn):
     ...   ...
     >>> NonEmptyString.from_str("test")
     NonEmptyString('test')
@@ -148,11 +148,11 @@ class NonEmptyStringMixin(LimitedMinLengthMixin, metaclass=type):
         return 1
 
 
-class LimitedMaxLengthMixin(BaseString):
+class LimitedMaxLengthMixIn(BaseString):
     """
-    LimitedMaxLengthMixin is a string type that can be used to validate and serialize strings with a maximum length.
+    LimitedMaxLengthMixIn is a string type that can be used to validate and serialize strings with a maximum length.
 
-    >>> class TestString(LimitedMaxLengthMixin, BaseString):
+    >>> class TestString(LimitedMaxLengthMixIn, BaseString):
     ...   @classmethod
     ...   def get_max_length(cls) -> int:
     ...     return 3
@@ -178,11 +178,11 @@ class LimitedMaxLengthMixin(BaseString):
         return super().__get_extra_constraint_dict__() | {"max_length": cls.get_max_length()}
 
 
-class NormalizedStringMixin(BaseString):
+class NormalizedStringMixIn(BaseString):
     """
-    NormalizedStringMixin is a string type that can be used to validate and serialize normalized strings.
+    NormalizedStringMixIn is a string type that can be used to validate and serialize normalized strings.
 
-    >>> class TestString(NormalizedStringMixin, BaseString):
+    >>> class TestString(NormalizedStringMixIn, BaseString):
     ...   ...
     >>> TestString("test")
     TestString('test')
@@ -198,11 +198,11 @@ class NormalizedStringMixin(BaseString):
         return super()._proc_str(normalize_jptext(s))
 
 
-class RegexSubstitutedStringMixin(BaseString):
+class RegexSubstitutedStringMixIn(BaseString):
     r"""
-    RegexSubstitutedStringMixin is a string type that substitute strings by regular expression.
+    RegexSubstitutedStringMixIn is a string type that substitute strings by regular expression.
 
-    >>> class TestString(RegexSubstitutedStringMixin, BaseString):
+    >>> class TestString(RegexSubstitutedStringMixIn, BaseString):
     ...   @classmethod
     ...   def get_pattern(cls) -> str:
     ...     return r"[\n\r]"
@@ -226,11 +226,11 @@ class RegexSubstitutedStringMixin(BaseString):
         return super()._proc_str(re.sub(cls.get_pattern(), cls.get_repl(), s))
 
 
-class RegexMatchedStringMixin(BaseString):
+class RegexMatchedStringMixIn(BaseString):
     r"""
-    RegexMatchedStringMixin is a string type that can be used to validate and serialize strings matched by regular expression.
+    RegexMatchedStringMixIn is a string type that can be used to validate and serialize strings matched by regular expression.
 
-    >>> class TestString(RegexMatchedStringMixin, BaseString):
+    >>> class TestString(RegexMatchedStringMixIn, BaseString):
     ...   @classmethod
     ...   def get_pattern(cls) -> str:
     ...     return r"^[a-z]+$"
@@ -256,11 +256,11 @@ class RegexMatchedStringMixin(BaseString):
         return super().__get_extra_constraint_dict__() | {"pattern": cls.get_pattern()}
 
 
-class TrimmedStringMixin(BaseString):
+class TrimmedStringMixIn(BaseString):
     """
-    TrimmedStringMixin is a string type that can be used to validate and serialize trimmed strings.
+    TrimmedStringMixIn is a string type that can be used to validate and serialize trimmed strings.
 
-    >>> class TestString(TrimmedStringMixin, BaseString):
+    >>> class TestString(TrimmedStringMixIn, BaseString):
     ...   ...
     >>> TestString("test")
     TestString('test')
@@ -276,11 +276,11 @@ class TrimmedStringMixin(BaseString):
         return super().__get_extra_constraint_dict__() | {"strip_whitespace": True}
 
 
-class SnakeCaseStringMixin(BaseString):
+class SnakeCaseStringMixIn(BaseString):
     """
-    SnakeCaseStringMixin is a string type that can be used to validate and serialize snake_case strings.
+    SnakeCaseStringMixIn is a string type that can be used to validate and serialize snake_case strings.
 
-    >>> class TestString(SnakeCaseStringMixin, BaseString):
+    >>> class TestString(SnakeCaseStringMixIn, BaseString):
     ...   ...
     >>> TestString("test")
     TestString('test')
@@ -298,11 +298,11 @@ class SnakeCaseStringMixin(BaseString):
         return super()._proc_str(to_snake(s))
 
 
-class CamelCaseStringMixin(BaseString):
+class CamelCaseStringMixIn(BaseString):
     """
-    CamelCaseStringMixin is a string type that can be used to validate and serialize camelCase strings.
+    CamelCaseStringMixIn is a string type that can be used to validate and serialize camelCase strings.
 
-    >>> class TestString(CamelCaseStringMixin, BaseString):
+    >>> class TestString(CamelCaseStringMixIn, BaseString):
     ...   ...
     >>> TestString("test")
     TestString('test')

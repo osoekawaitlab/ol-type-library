@@ -33,14 +33,14 @@ def test_oltl_has_base_update_time_aware_model() -> None:
     oltl.BaseCreationTimeAwareModel == core.BaseCreationTimeAwareModel
 
 
-def test_oltl_has_string_mixins() -> None:
+def test_oltl_has_string_MixIns() -> None:
     oltl.BaseString == core.BaseString
-    oltl.LimitedMinLengthMixin == core.LimitedMinLengthMixin
-    oltl.NonEmptyStringMixin == core.NonEmptyStringMixin
-    oltl.LimitedMaxLengthMixin == core.LimitedMaxLengthMixin
-    oltl.NormalizedStringMixin == core.NormalizedStringMixin
-    oltl.RegexSubstitutedStringMixin == core.RegexSubstitutedStringMixin
-    oltl.TrimmedStringMixin == core.TrimmedStringMixin
-    oltl.SnakeCaseStringMixin == core.SnakeCaseStringMixin
-    oltl.CamelCaseStringMixin == core.CamelCaseStringMixin
-    oltl.RegexMatchedStringMixin == core.RegexMatchedStringMixin
+    oltl.LimitedMinLengthMixIn == core.LimitedMinLengthMixIn
+    oltl.NonEmptyStringMixIn == core.NonEmptyStringMixIn
+    oltl.LimitedMaxLengthMixIn == core.LimitedMaxLengthMixIn
+    oltl.NormalizedStringMixIn == core.NormalizedStringMixIn
+    oltl.RegexSubstitutedStringMixIn == core.RegexSubstitutedStringMixIn
+    oltl.TrimmedStringMixIn == core.TrimmedStringMixIn
+    oltl.SnakeCaseStringMixIn == core.SnakeCaseStringMixIn
+    oltl.CamelCaseStringMixIn == core.CamelCaseStringMixIn
+    oltl.RegexMatchedStringMixIn == core.RegexMatchedStringMixIn
