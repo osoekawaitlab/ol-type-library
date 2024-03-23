@@ -33,7 +33,7 @@ def test_oltl_has_base_update_time_aware_model() -> None:
     oltl.BaseCreationTimeAwareModel == core.BaseCreationTimeAwareModel
 
 
-def test_oltl_has_string_MixIns() -> None:
+def test_oltl_has_string_mixins() -> None:
     oltl.BaseString == core.BaseString
     oltl.LimitedMinLengthMixIn == core.LimitedMinLengthMixIn
     oltl.NonEmptyStringMixIn == core.NonEmptyStringMixIn
