@@ -226,6 +226,36 @@ class RegexSubstitutedStringMixin(BaseString):
         return super()._proc_str(re.sub(cls.get_pattern(), cls.get_repl(), s))
 
 
+class RegexMatchedStringMixin(BaseString):
+    r"""
+    RegexMatchedStringMixin is a string type that can be used to validate and serialize strings matched by regular expression.
+
+    >>> class TestString(RegexMatchedStringMixin, BaseString):
+    ...   @classmethod
+    ...   def get_pattern(cls) -> str:
+    ...     return r"^[a-z]+$"
+    >>> TestString("test")
+    TestString('test')
+    >>> ta = TypeAdapter(TestString)
+    >>> ta.validate_python("test")
+    TestString('test')
+    >>> ta.validate_python("test_test")
+    Traceback (most recent call last):
+     ...
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[TestString(), function-before[_proc_str(), constrained-str]]
+      String should match pattern '^[a-z]+$' [type=string_pattern_mismatch, input_value='test_test', input_type=str]
+     ...
+    """  # noqa: E501
+
+    @classmethod
+    def get_pattern(cls) -> str:
+        raise NotImplementedError
+
+    @classmethod
+    def __get_extra_constraint_dict__(cls) -> dict[str, Any]:
+        return super().__get_extra_constraint_dict__() | {"pattern": cls.get_pattern()}
+
+
 class TrimmedStringMixin(BaseString):
     """
     TrimmedStringMixin is a string type that can be used to validate and serialize trimmed strings.

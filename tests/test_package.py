@@ -43,3 +43,4 @@ def test_oltl_has_string_mixins() -> None:
     oltl.TrimmedStringMixin == core.TrimmedStringMixin
     oltl.SnakeCaseStringMixin == core.SnakeCaseStringMixin
     oltl.CamelCaseStringMixin == core.CamelCaseStringMixin
+    oltl.RegexMatchedStringMixin == core.RegexMatchedStringMixin
