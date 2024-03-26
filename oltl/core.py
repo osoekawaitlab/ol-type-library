@@ -1,4 +1,5 @@
 import re
+from base64 import urlsafe_b64decode, urlsafe_b64encode
 from datetime import datetime as _datetime
 from datetime import timezone as _timezone
 from typing import Any, Generic, Type, TypeAlias, TypeVar, Union, cast
@@ -21,8 +22,58 @@ from ulid import ULID
 from .utils import normalize_jptext
 
 StrT = TypeVar("StrT", bound="BaseString")
+BytesT = TypeVar("BytesT", bound="BaseBytes")
 IdT = TypeVar("IdT", bound="Id")
 IncEx: TypeAlias = "set[int] | set[str] | dict[int, IncEx] | dict[str, IncEx] | None"
+
+
+class BaseBytes(bytes):
+    """
+    BaseBytes is a bytes type that can be used to validate and serialize bytes.
+
+    >>> BaseBytes(b"test")
+    BaseBytes(b'test')
+    >>> bytes(BaseBytes(b"test"))
+    b'test'
+    >>> BaseBytes("YSAgMC1yMzJm")
+    BaseBytes(b'a  0-r32f')
+    >>> class TestBytes(BaseModel):
+    ...   value: BaseBytes
+    >>> TestBytes(value=b"test").model_dump()
+    {'value': BaseBytes(b'test')}
+    >>> TestBytes.model_validate_json('{"value":"YSAgMC1yMzJm"}')
+    TestBytes(value=BaseBytes(b'a  0-r32f'))
+    >>> TestBytes(value="YSAgMC1yMzJm").model_dump()
+    {'value': BaseBytes(b'a  0-r32f')}
+    >>> TestBytes(value=b"test").model_dump_json()
+    '{"value":"dGVzdA=="}'
+    """
+
+    def __new__(cls, value: Union[bytes, str]) -> "BaseBytes":
+        if isinstance(value, bytes):
+            return super(BaseBytes, cls).__new__(cls, value)
+        return super(BaseBytes, cls).__new__(cls, urlsafe_b64decode(value))
+
+    @classmethod
+    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
+        return core_schema.no_info_plain_validator_function(
+            cls.validate,
+            serialization=core_schema.plain_serializer_function_ser_schema(cls.serialize, when_used="json"),
+        )
+
+    @classmethod
+    def validate(cls: Type[BytesT], value: Any) -> BytesT:
+        if isinstance(value, cls):
+            return value
+        if isinstance(value, (bytes, str)):
+            return cls(value)
+        raise ValueError(f"Cannot convert {value} to {cls.__name__}")
+
+    def serialize(self) -> str:
+        return urlsafe_b64encode(self).decode()
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({super().__repr__()})"
 
 
 class BaseString(str):
