@@ -1,5 +1,5 @@
 import re
-from base64 import urlsafe_b64decode, urlsafe_b64encode
+from base64 import standard_b64decode, standard_b64encode
 from datetime import datetime as _datetime
 from datetime import timezone as _timezone
 from typing import Any, Generic, Type, TypeAlias, TypeVar, Union, cast
@@ -47,12 +47,14 @@ class BaseBytes(bytes):
     {'value': BaseBytes(b'a  0-r32f')}
     >>> TestBytes(value=b"test").model_dump_json()
     '{"value":"dGVzdA=="}'
-    """
+    >>> TestBytes.model_json_schema()
+    {'properties': {'value': {'format': 'base64EncodedString', 'title': 'Value', 'type': 'string'}}, 'required': ['value'], 'title': 'TestBytes', 'type': 'object'}
+    """  # noqa: E501
 
     def __new__(cls, value: Union[bytes, str]) -> "BaseBytes":
         if isinstance(value, bytes):
             return super(BaseBytes, cls).__new__(cls, value)
-        return super(BaseBytes, cls).__new__(cls, urlsafe_b64decode(value))
+        return super(BaseBytes, cls).__new__(cls, standard_b64decode(value))
 
     @classmethod
     def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
@@ -70,10 +72,13 @@ class BaseBytes(bytes):
         raise ValueError(f"Cannot convert {value} to {cls.__name__}")
 
     def serialize(self) -> str:
-        return urlsafe_b64encode(self).decode()
+        return standard_b64encode(self).decode()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({super().__repr__()})"
+
+    def __get_pydantic_json_schema__(self, _handler: GetJsonSchemaHandler) -> JsonSchemaValue:
+        return {"format": "base64EncodedString", "type": "string"}
 
 
 class BaseString(str):
