@@ -1,4 +1,5 @@
 from .core import (
+    BaseBytes,
     BaseCreationTimeAwareModel,
     BaseEntity,
     BaseModel,
@@ -37,4 +38,5 @@ __all__ = [
     "TrimmedStringMixIn",
     "SnakeCaseStringMixIn",
     "CamelCaseStringMixIn",
+    "BaseBytes",
 ]

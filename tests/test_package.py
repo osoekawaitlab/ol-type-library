@@ -44,3 +44,7 @@ def test_oltl_has_string_mixins() -> None:
     oltl.SnakeCaseStringMixIn == core.SnakeCaseStringMixIn
     oltl.CamelCaseStringMixIn == core.CamelCaseStringMixIn
     oltl.RegexMatchedStringMixIn == core.RegexMatchedStringMixIn
+
+
+def test_oltl_has_base_bytes() -> None:
+    oltl.BaseBytes == core.BaseBytes
