@@ -2,7 +2,7 @@ import re
 from base64 import standard_b64decode, standard_b64encode
 from datetime import datetime as _datetime
 from datetime import timezone as _timezone
-from typing import Any, Generic, Type, TypeAlias, TypeVar, Union, cast
+from typing import Any, Generic, Literal, Type, TypeAlias, TypeVar, Union, cast
 
 import ulid
 from dateutil.parser import parse as parse_datetime
@@ -578,23 +578,27 @@ class BaseModel(PydanticBaseModel):
         indent: int | None = None,
         include: IncEx = None,
         exclude: IncEx = None,
+        context: JsonSchemaValue | None = None,
         by_alias: bool = True,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
         round_trip: bool = False,
-        warnings: bool = True,
+        warnings: bool | Literal["none"] | Literal["warn"] | Literal["error"] = True,
+        serialize_as_any: bool = False,
     ) -> str:
-        return super(BaseModel, self).model_dump_json(
+        return super().model_dump_json(
             indent=indent,
             include=include,
             exclude=exclude,
+            context=context,
             by_alias=by_alias,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
             exclude_none=exclude_none,
             round_trip=round_trip,
             warnings=warnings,
+            serialize_as_any=serialize_as_any,
         )
 
 
