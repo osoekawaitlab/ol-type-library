@@ -68,6 +68,20 @@ def test_string_mixins(sut: TypeAlias, test_cases: Sequence[Tuple[str, Union[Val
             assert actual.value == expected
 
 
+def test_json_schema_to_model_basic_case() -> None:
+    class MyModel(core.BaseModel):
+        name: str
+        age: int
+        height: float
+        is_active: bool
+
+    expected = MyModel(name="foo", age=42, height=1.75, is_active=True)
+
+    generated_model = core.json_schema_to_model(MyModel.model_json_schema())
+    actual = generated_model(name="foo", age=42, height=1.75, is_active=True)
+    assert actual.model_dump() == expected.model_dump()
+
+
 def test_entity_id_is_immutable() -> None:
     class MyId(core.Id): ...
 

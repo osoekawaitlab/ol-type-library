@@ -2,7 +2,7 @@ import re
 from base64 import standard_b64decode, standard_b64encode
 from datetime import datetime as _datetime
 from datetime import timezone as _timezone
-from typing import Any, Generic, Literal, Type, TypeAlias, TypeVar, Union, cast
+from typing import Any, Dict, Generic, Literal, Type, TypeAlias, TypeVar, Union, cast
 
 import ulid
 from dateutil.parser import parse as parse_datetime
@@ -13,6 +13,7 @@ from pydantic import (
     GetCoreSchemaHandler,
     GetJsonSchemaHandler,
     TypeAdapter,
+    create_model,
 )
 from pydantic.alias_generators import to_camel, to_snake
 from pydantic.json_schema import JsonSchemaValue
@@ -600,6 +601,26 @@ class BaseModel(PydanticBaseModel):
             warnings=warnings,
             serialize_as_any=serialize_as_any,
         )
+
+
+def json_schema_to_model(json_schema: Dict[str, Any], base_model: Type[BaseModel] = BaseModel) -> Type[BaseModel]:
+    class_name = (
+        json_schema["title"] if "title" in json_schema and isinstance(json_schema["title"], str) else "GeneratedModel"
+    )
+    if "properties" not in json_schema:
+        raise ValueError("properties key is not found in json_schema")
+    dynamic_model = create_model(
+        class_name,
+        __base__=base_model,
+        **{
+            to_snake(k): ({"integer": int, "string": str, "number": float, "boolean": bool}.get(v["type"], str), ...)
+            for k, v in json_schema["properties"].items()
+            if to_snake(k) not in base_model.model_fields
+        },
+    )  # type: ignore[call-overload]
+    if not isinstance(dynamic_model, type):
+        raise ValueError("create_model failed")
+    return dynamic_model
 
 
 class BaseEntity(BaseModel, Generic[IdT]):
