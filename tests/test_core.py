@@ -82,6 +82,22 @@ def test_json_schema_to_model_basic_case() -> None:
     assert actual.model_dump() == expected.model_dump()
 
 
+def test_json_schema_to_model_with_base_model_specified() -> None:
+    class MyModel(core.BaseModel):
+        name: str
+
+    class MyModel2(MyModel):
+        age: int
+        height: float
+        is_active: bool
+
+    expected = MyModel2(name="foo", age=42, height=1.75, is_active=True)
+
+    generated_model = core.json_schema_to_model(MyModel2.model_json_schema(), base_model=MyModel)
+    actual = generated_model(name="foo", age=42, height=1.75, is_active=True)
+    assert actual.model_dump() == expected.model_dump()
+
+
 def test_entity_id_is_immutable() -> None:
     class MyId(core.Id): ...
 
