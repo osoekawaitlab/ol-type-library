@@ -615,7 +615,6 @@ def json_schema_to_model(json_schema: Dict[str, Any], base_model: Type[BaseModel
         **{
             to_snake(k): ({"integer": int, "string": str, "number": float, "boolean": bool}.get(v["type"], str), ...)
             for k, v in json_schema["properties"].items()
-            if to_snake(k) not in base_model.model_fields
         },
     )  # type: ignore[call-overload]
     if not isinstance(dynamic_model, type):
