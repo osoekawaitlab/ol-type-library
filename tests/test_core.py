@@ -83,7 +83,9 @@ def test_json_schema_to_model_basic_case() -> None:
 
 
 def test_json_schema_to_model_with_base_model_specified() -> None:
-    class MyModel(core.BaseModel):
+    class MyId(core.Id): ...
+
+    class MyModel(core.BaseUpdateTimeAwareModel, core.BaseEntity[MyId]):  # type: ignore[misc]
         name: str
 
     class MyModel2(MyModel):
@@ -91,10 +93,26 @@ def test_json_schema_to_model_with_base_model_specified() -> None:
         height: float
         is_active: bool
 
-    expected = MyModel2(name="foo", age=42, height=1.75, is_active=True)
+    expected = MyModel2(
+        id="01HVRQ0XMMDDRNKGAW2R19ZQNW",
+        name="foo",
+        age=42,
+        height=1.75,
+        is_active=True,
+        created_at=1713415263253018,
+        updated_at=1713415263253043,
+    )
 
     generated_model = core.json_schema_to_model(MyModel2.model_json_schema(), base_model=MyModel)
-    actual = generated_model(name="foo", age=42, height=1.75, is_active=True)
+    actual = generated_model(
+        id="01HVRQ0XMMDDRNKGAW2R19ZQNW",
+        name="foo",
+        age=42,
+        height=1.75,
+        is_active=True,
+        created_at=1713415263253018,
+        updated_at=1713415263253043,
+    )
     assert actual.model_dump() == expected.model_dump()
 
 
