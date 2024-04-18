@@ -16,6 +16,7 @@ from .core import (
     SnakeCaseStringMixIn,
     Timestamp,
     TrimmedStringMixIn,
+    json_schema_to_model,
 )
 
 __version__ = "0.0.1"
@@ -39,4 +40,5 @@ __all__ = [
     "SnakeCaseStringMixIn",
     "CamelCaseStringMixIn",
     "BaseBytes",
+    "json_schema_to_model",
 ]
