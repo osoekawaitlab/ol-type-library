@@ -613,7 +613,10 @@ def json_schema_to_model(json_schema: Dict[str, Any], base_model: Type[BaseModel
         class_name,
         __base__=base_model,
         **{
-            to_snake(k): ({"integer": int, "string": str, "number": float, "boolean": bool}.get(v["type"], str), ...)
+            to_snake(k): (
+                {"integer": int, "string": str, "number": float, "boolean": bool, "array": list}.get(v["type"], str),
+                ...,
+            )
             for k, v in json_schema["properties"].items()
         },
     )  # type: ignore[call-overload]

@@ -116,6 +116,17 @@ def test_json_schema_to_model_with_base_model_specified() -> None:
     assert actual.model_dump() == expected.model_dump()
 
 
+def test_json_schema_to_model_supports_array() -> None:
+    class MyModel(core.BaseModel):
+        items: Sequence[str]
+
+    expected = MyModel(items=["foo", "bar", "baz"])
+
+    generated_model = core.json_schema_to_model(MyModel.model_json_schema())
+    actual = generated_model(items=["foo", "bar", "baz"])
+    assert actual.model_dump() == expected.model_dump()
+
+
 def test_entity_id_is_immutable() -> None:
     class MyId(core.Id): ...
 
