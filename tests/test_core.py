@@ -128,20 +128,38 @@ def test_json_schema_to_model_supports_array() -> None:
 
 
 def test_json_schema_to_model_supports_nested_model() -> None:
+    class UrlModel(core.BaseModel):
+        value: str
+
     class MyNestedNestedModel(core.BaseModel):
         name: str
         age: int
+        profile_url: UrlModel
 
     class MyNestedModel(core.BaseModel):
         obj: MyNestedNestedModel
+        flag: bool
 
     class MyModel(core.BaseModel):
         nested: MyNestedModel
+        reference_url: UrlModel
 
-    expected = MyModel(nested=MyNestedModel(obj=MyNestedNestedModel(name="foo", age=42)))
+    expected = MyModel(
+        nested=MyNestedModel(
+            obj=MyNestedNestedModel(name="foo", age=42, profile_url=UrlModel(value="https://example.com")),
+            flag=True,
+        ),
+        reference_url=UrlModel(value="http://localhost"),
+    )
 
     generated_model = core.json_schema_to_model(MyModel.model_json_schema())
-    actual = generated_model(nested={"obj": {"name": "foo", "age": 42}})
+    actual = generated_model(
+        nested={
+            "obj": {"name": "foo", "age": 42, "profileUrl": {"value": "https://example.com"}},
+            "flag": True,
+        },
+        referenceUrl={"value": "http://localhost"},
+    )
     assert actual.model_dump() == expected.model_dump()
 
 
