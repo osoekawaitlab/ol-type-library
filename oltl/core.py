@@ -675,25 +675,51 @@ def _property_to_model(
 
 
 def json_schema_to_model(json_schema: Dict[str, Any], base_model: Type[BaseModel] = BaseModel) -> Type[BaseModel]:
-    class_name = (
-        json_schema["title"] if "title" in json_schema and isinstance(json_schema["title"], str) else "GeneratedModel"
-    )
+    """
+    >>> x = {
+    ...   '$defs': {
+    ...     'MyNestedModel': {
+    ...       'properties': {'obj': {'$ref': '#/$defs/MyNestedNestedModel'}},
+    ...       'required': ['obj'],
+    ...       'title': 'MyNestedModel',
+    ...       'type': 'object'
+    ...     },
+    ...     'MyNestedNestedModel': {
+    ...       'properties': {'name': {'title': 'Name', 'type': 'string'}, 'age': {'title': 'Age', 'type': 'integer'}},
+    ...       'required': ['name', 'age'],
+    ...       'title': 'MyNestedNestedModel',
+    ...       'type': 'object'
+    ...     }
+    ...   },
+    ...   'properties': {'nested': {'$ref': '#/$defs/MyNestedModel'}},
+    ...   'required': ['nested'],
+    ...   'title': 'MyModel',
+    ...   'type': 'object'
+    ... }
+    >>> generated_model = json_schema_to_model(x)
+    >>> generated_model(nested={"obj": {"name": "foo", "age": 42}, "flag": True})
+    MyModel(nested=MyNestedModel(obj=MyNestedNestedModel(name='foo', age=42)))
+    """
     if "properties" not in json_schema:
         raise ValueError("properties key is not found in json_schema")
-    dynamic_model = create_model(
-        class_name,
-        __base__=base_model,
-        **{
-            to_snake(k): (
-                {"integer": int, "string": str, "number": float, "boolean": bool, "array": list}.get(v["type"], str),
-                ...,
-            )
-            for k, v in json_schema["properties"].items()
-        },
-    )  # type: ignore[call-overload]
-    if not isinstance(dynamic_model, type):
-        raise ValueError("create_model failed")
-    return dynamic_model
+    unresolved_refs = json_schema.get("$defs", {})
+    resolved_refs: Dict[str, Type[BaseModel]] = {}
+    while unresolved_refs:
+        before_len = len(unresolved_refs)
+        key_seq = list(unresolved_refs.keys())
+        for k in key_seq:
+            try:
+                resolved_refs[f"#/$defs/{k}"] = _property_to_model(
+                    unresolved_refs[k], resolved_refs, base_model=base_model
+                )
+                unresolved_refs.pop(k)
+            except KeyError:
+                continue
+            ...
+        if before_len == len(unresolved_refs):
+            raise ValueError("Cannot resolve all references")
+
+    return _property_to_model(json_schema, resolved_refs, base_model=base_model)
 
 
 class BaseEntity(BaseModel, Generic[IdT]):
