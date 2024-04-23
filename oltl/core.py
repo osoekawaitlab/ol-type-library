@@ -637,6 +637,43 @@ def _get_object_by_json_pointer(data: Dict[str, Any], json_pointer: str) -> Any:
     return obj
 
 
+def _property_to_model(
+    json_schema: Dict[str, Any], defs: Dict[str, Any], base_model: Type[BaseModel] = BaseModel
+) -> Type[BaseModel]:
+    """
+    >>> x = {'properties': {'value': {'title': 'Value', 'type': 'string'}}, 'required': ['value'], 'title': 'UrlModel', 'type': 'object'}
+    >>> x_model = _property_to_model(x, {})
+    >>> x_model(value="http://localhost")
+    UrlModel(value='http://localhost')
+    >>> y = {'properties': {'url': {'$ref': '#/$defs/UrlModel'}}, 'required': ['url'], 'title': 'MyModel', 'type': 'object'}
+    >>> _property_to_model(y, {'#/$defs/UrlModel': x_model})(url={"value": "http://localhost"})
+    MyModel(url=UrlModel(value='http://localhost'))
+    """  # noqa: E501
+    class_name = (
+        json_schema["title"] if "title" in json_schema and isinstance(json_schema["title"], str) else "GeneratedModel"
+    )
+    dynamic_model = create_model(
+        class_name,
+        __base__=base_model,
+        **{
+            to_snake(k): (
+                (
+                    {"integer": int, "string": str, "number": float, "boolean": bool, "array": list}.get(
+                        v["type"], str
+                    ),
+                    ...,
+                )
+                if "type" in v
+                else (defs[v["$ref"]], ...)
+            )
+            for k, v in json_schema["properties"].items()
+        },
+    )  # type: ignore[call-overload]
+    if not isinstance(dynamic_model, type):
+        raise ValueError("create_model failed")
+    return dynamic_model
+
+
 def json_schema_to_model(json_schema: Dict[str, Any], base_model: Type[BaseModel] = BaseModel) -> Type[BaseModel]:
     class_name = (
         json_schema["title"] if "title" in json_schema and isinstance(json_schema["title"], str) else "GeneratedModel"
