@@ -163,6 +163,26 @@ def test_json_schema_to_model_supports_nested_model() -> None:
     assert actual.model_dump() == expected.model_dump()
 
 
+def test_json_schema_to_model_supports_array_nested_model() -> None:
+    class NestedItem(core.BaseModel):
+        name: str
+        age: int
+
+    class MyModel(core.BaseModel):
+        data: Sequence[NestedItem]
+
+    expected = MyModel(data=[NestedItem(name="foo", age=42), NestedItem(name="bar", age=99)])
+
+    generated_model = core.json_schema_to_model(MyModel.model_json_schema())
+    print(MyModel.model_json_schema())
+    actual = generated_model(data=[{"name": "foo", "age": 42}, {"name": "bar", "age": 99}])
+    assert actual.model_dump() == expected.model_dump()
+    assert actual.data[0].name == "foo"
+    assert actual.data[0].age == 42
+    assert actual.data[1].name == "bar"
+    assert actual.data[1].age == 99
+
+
 def test_entity_id_is_immutable() -> None:
     class MyId(core.Id): ...
 
