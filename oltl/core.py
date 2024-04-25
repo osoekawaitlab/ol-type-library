@@ -648,7 +648,7 @@ def _get_object_by_json_pointer(data: Dict[str, Any], json_pointer: str) -> Any:
     return obj
 
 
-def _json_schema_type_to_python_type(json_schema_type: Dict[str, Any], defs: Dict[str, Any]) -> Type[Any]:
+def _json_schema_type_to_python_type(json_schema_type: Dict[str, Any], defs: Dict[str, Type[BaseModel]]) -> Type[Any]:
     primitive_map: Dict[str, Type[int | str | float | bool]] = {
         "integer": int,
         "string": str,
@@ -665,11 +665,13 @@ def _json_schema_type_to_python_type(json_schema_type: Dict[str, Any], defs: Dic
                 if "type" in items:
                     tt = primitive_map[items["type"]]
                     if isinstance(tt, type):
-                        return Sequence[tt]
+                        return Sequence[tt]  # type: ignore[valid-type]
                     raise ValueError(f"Cannot convert {json_schema_type} to Python type")
                 if "$ref" in items:
                     reftype = items["$ref"]
-                    return Sequence[defs[reftype]]
+                    if reftype in defs:
+                        return Sequence[defs[reftype]]  # type: ignore[valid-type]
+                    raise ValueError(f"Cannot convert {json_schema_type} to Python type")
             return list
         if t == "object":
             if "$ref" in json_schema_type:
