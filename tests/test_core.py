@@ -174,7 +174,6 @@ def test_json_schema_to_model_supports_array_nested_model() -> None:
     expected = MyModel(data=[NestedItem(name="foo", age=42), NestedItem(name="bar", age=99)])
 
     generated_model = core.json_schema_to_model(MyModel.model_json_schema())
-    print(MyModel.model_json_schema())
     actual = generated_model(data=[{"name": "foo", "age": 42}, {"name": "bar", "age": 99}])
     assert actual.model_dump() == expected.model_dump()
     assert actual.data[0].name == "foo"
