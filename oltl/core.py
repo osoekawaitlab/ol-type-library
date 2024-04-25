@@ -2,7 +2,18 @@ import re
 from base64 import standard_b64decode, standard_b64encode
 from datetime import datetime as _datetime
 from datetime import timezone as _timezone
-from typing import Any, Dict, Generic, Literal, Type, TypeAlias, TypeVar, Union, cast
+from typing import (
+    Any,
+    Dict,
+    Generic,
+    Literal,
+    Sequence,
+    Type,
+    TypeAlias,
+    TypeVar,
+    Union,
+    cast,
+)
 
 import ulid
 from dateutil.parser import parse as parse_datetime
@@ -637,6 +648,38 @@ def _get_object_by_json_pointer(data: Dict[str, Any], json_pointer: str) -> Any:
     return obj
 
 
+def _json_schema_type_to_python_type(json_schema_type: Dict[str, Any], defs: Dict[str, Any]) -> Type[Any]:
+    primitive_map: Dict[str, Type[int | str | float | bool]] = {
+        "integer": int,
+        "string": str,
+        "number": float,
+        "boolean": bool,
+    }
+    if "type" in json_schema_type:
+        t = json_schema_type["type"]
+        if t in primitive_map:
+            return primitive_map[t]
+        if t == "array":
+            if "items" in json_schema_type:
+                items = json_schema_type["items"]
+                if "type" in items:
+                    tt = primitive_map[items["type"]]
+                    if isinstance(tt, type):
+                        return Sequence[tt]
+                    raise ValueError(f"Cannot convert {json_schema_type} to Python type")
+                if "$ref" in items:
+                    reftype = items["$ref"]
+                    return Sequence[defs[reftype]]
+            return list
+        if t == "object":
+            if "$ref" in json_schema_type:
+                return defs[json_schema_type["$ref"]]
+            return dict
+    if "$ref" in json_schema_type:
+        return defs[json_schema_type["$ref"]]
+    raise ValueError(f"Cannot convert {json_schema_type} to Python type")
+
+
 def _property_to_model(
     json_schema: Dict[str, Any], defs: Dict[str, Any], base_model: Type[BaseModel] = BaseModel
 ) -> Type[BaseModel]:
@@ -655,19 +698,7 @@ def _property_to_model(
     dynamic_model = create_model(
         class_name,
         __base__=base_model,
-        **{
-            to_snake(k): (
-                (
-                    {"integer": int, "string": str, "number": float, "boolean": bool, "array": list}.get(
-                        v["type"], str
-                    ),
-                    ...,
-                )
-                if "type" in v
-                else (defs[v["$ref"]], ...)
-            )
-            for k, v in json_schema["properties"].items()
-        },
+        **{to_snake(k): (_json_schema_type_to_python_type(v, defs), ...) for k, v in json_schema["properties"].items()},
     )  # type: ignore[call-overload]
     if not isinstance(dynamic_model, type):
         raise ValueError("create_model failed")
