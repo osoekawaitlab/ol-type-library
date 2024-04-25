@@ -121,7 +121,6 @@ def test_json_schema_to_model_supports_array() -> None:
         items: Sequence[str]
 
     expected = MyModel(items=["foo", "bar", "baz"])
-
     generated_model = core.json_schema_to_model(MyModel.model_json_schema())
     actual = generated_model(items=["foo", "bar", "baz"])
     assert actual.model_dump() == expected.model_dump()
@@ -176,6 +175,8 @@ def test_json_schema_to_model_supports_array_nested_model() -> None:
     generated_model = core.json_schema_to_model(MyModel.model_json_schema())
     actual = generated_model(data=[{"name": "foo", "age": 42}, {"name": "bar", "age": 99}])
     assert actual.model_dump() == expected.model_dump()
+    assert hasattr(actual, "data")
+    assert isinstance(actual.data, list)
     assert actual.data[0].name == "foo"
     assert actual.data[0].age == 42
     assert actual.data[1].name == "bar"
