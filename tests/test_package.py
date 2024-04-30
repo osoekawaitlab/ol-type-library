@@ -52,3 +52,8 @@ def test_oltl_has_base_bytes() -> None:
 
 def test_oltl_has_json_schema_to_model() -> None:
     oltl.json_schema_to_model == core.json_schema_to_model
+
+
+def test_oltl_has_integer_mixins() -> None:
+    oltl.BaseInteger == core.BaseInteger
+    oltl.LowerBoundIntegerMixIn == core.LowerBoundIntegerMixIn

@@ -35,6 +35,7 @@ from .utils import normalize_jptext
 
 StrT = TypeVar("StrT", bound="BaseString")
 BytesT = TypeVar("BytesT", bound="BaseBytes")
+IntegerT = TypeVar("IntegerT", bound="BaseInteger")
 IdT = TypeVar("IdT", bound="Id")
 IncEx: TypeAlias = "set[int] | set[str] | dict[int, IncEx] | dict[str, IncEx] | None"
 
@@ -386,6 +387,96 @@ class CamelCaseStringMixIn(BaseString):
     @classmethod
     def _proc_str(cls, s: str) -> str:
         return super()._proc_str(to_camel(s))
+
+
+class BaseInteger(int):
+    """
+    BaseInteger is an integer type that can be used to validate and serialize integers.
+
+    >>> BaseInteger(123)
+    BaseInteger(123)
+    >>> int(BaseInteger(123))
+    123
+    >>> ta = TypeAdapter(BaseInteger)
+    >>> ta.validate_python(123)
+    BaseInteger(123)
+    >>> ta.validate_python("string")
+    Traceback (most recent call last):
+     ...
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), int]
+      Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='string', input_type=str]
+     ...
+    >>> ta.dump_json(BaseInteger(123))
+    b'123'
+    >>> hash(BaseInteger(123)) == hash(123)
+    True
+    """  # noqa: E501
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({super().__repr__()})"
+
+    def __str__(self) -> str:
+        return super(BaseInteger, self).__str__()
+
+    @classmethod
+    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
+        return core_schema.no_info_after_validator_function(
+            cls.validate,
+            core_schema.int_schema(**cls.__get_extra_constraint_dict__()),
+            serialization=core_schema.plain_serializer_function_ser_schema(cls.serialize, when_used="json"),
+        )
+
+    def __get_pydantic_json_schema__(self, _handler: GetJsonSchemaHandler) -> JsonSchemaValue:
+        return {"type": "integer"}
+
+    @classmethod
+    def validate(cls: Type[IntegerT], value: Any) -> IntegerT:
+        if isinstance(value, cls):
+            return value
+        if isinstance(value, int):
+            return cls(value)
+        raise ValueError(f"Cannot convert {value} to {cls.__name__}")
+
+    def serialize(self) -> int:
+        return int(self)
+
+    @classmethod
+    def __get_extra_constraint_dict__(cls) -> dict[str, Any]:
+        return {}
+
+    def __hash__(self) -> int:
+        return super(BaseInteger, self).__hash__()
+
+
+class LowerBoundIntegerMixIn(BaseInteger):
+    """
+    LowerBoundIntegerMixIn is an integer type that can be used to validate and serialize integers with a lower bound.
+
+    >>> class TestInteger(LowerBoundIntegerMixIn):
+    ...   LowerBoundIntegerMixIn, BaseInteger
+    ...   @classmethod
+    ...   def get_min_value(cls) -> int:
+    ...     return 3
+    >>> TestInteger(3)
+    TestInteger(3)
+    >>> ta = TypeAdapter(TestInteger)
+    >>> ta.validate_python(3)
+    TestInteger(3)
+    >>> ta.validate_python(2)
+    Traceback (most recent call last):
+     ...
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), constrained-int]
+      Input should be greater than or equal to 3 [type=greater_than_equal, input_value=2, input_type=int]
+     ...
+    """  # noqa: E501
+
+    @classmethod
+    def get_min_value(cls) -> int:
+        raise NotImplementedError
+
+    @classmethod
+    def __get_extra_constraint_dict__(cls) -> dict[str, Any]:
+        return super().__get_extra_constraint_dict__() | {"ge": cls.get_min_value()}
 
 
 class Id(ULID):
