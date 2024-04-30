@@ -33,7 +33,7 @@ from ulid import ULID
 
 from .utils import normalize_jptext
 
-StrT = TypeVar("StrT", bound="BaseString")
+StringT = TypeVar("StringT", bound="BaseString")
 BytesT = TypeVar("BytesT", bound="BaseBytes")
 IntegerT = TypeVar("IntegerT", bound="BaseInteger")
 IdT = TypeVar("IdT", bound="Id")
@@ -154,7 +154,7 @@ class BaseString(str):
         return super(BaseString, self).__hash__()
 
     @classmethod
-    def from_str(cls: Type[StrT], v: str) -> StrT:
+    def from_str(cls: Type[StringT], v: str) -> StringT:
         return TypeAdapter(cls).validate_python(v)
 
 
