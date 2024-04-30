@@ -158,11 +158,11 @@ class BaseString(str):
         return TypeAdapter(cls).validate_python(v)
 
 
-class LimitedMinLengthMixIn(BaseString):
+class LimitedMinLengthStringMixIn(BaseString):
     """
-    LimitedMinLengthMixIn is a string type that can be used to validate and serialize strings with a minimum length.
+    LimitedMinLengthStringMixIn is a string type that can be used to validate and serialize strings with a minimum length.
 
-    >>> class TestString(LimitedMinLengthMixIn, BaseString):
+    >>> class TestString(LimitedMinLengthStringMixIn, BaseString):
     ...   @classmethod
     ...   def get_min_length(cls) -> int:
     ...     return 3
@@ -194,7 +194,7 @@ class LimitedMinLengthMixIn(BaseString):
         return super().__get_extra_constraint_dict__() | {"min_length": cls.get_min_length()}
 
 
-class NonEmptyStringMixIn(LimitedMinLengthMixIn, metaclass=type):
+class NonEmptyStringMixIn(LimitedMinLengthStringMixIn, metaclass=type):
     """
     NonEmptyString is a string type that can be used to validate and serialize non-empty strings.
     >>> class NonEmptyString(NonEmptyStringMixIn):
@@ -217,11 +217,11 @@ class NonEmptyStringMixIn(LimitedMinLengthMixIn, metaclass=type):
         return 1
 
 
-class LimitedMaxLengthMixIn(BaseString):
+class LimitedMaxLengthStringMixIn(BaseString):
     """
-    LimitedMaxLengthMixIn is a string type that can be used to validate and serialize strings with a maximum length.
+    LimitedMaxLengthStringMixIn is a string type that can be used to validate and serialize strings with a maximum length.
 
-    >>> class TestString(LimitedMaxLengthMixIn, BaseString):
+    >>> class TestString(LimitedMaxLengthStringMixIn, BaseString):
     ...   @classmethod
     ...   def get_max_length(cls) -> int:
     ...     return 3

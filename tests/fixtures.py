@@ -3,13 +3,13 @@ from pydantic import ValidationError
 from oltl import core
 
 
-class LimitedMinLength(core.LimitedMinLengthMixIn):
+class LimitedMinLength(core.LimitedMinLengthStringMixIn):
     @classmethod
     def get_min_length(cls) -> int:
         return 3
 
 
-class LimitedMaxLength(core.LimitedMaxLengthMixIn):
+class LimitedMaxLength(core.LimitedMaxLengthStringMixIn):
     @classmethod
     def get_max_length(cls) -> int:
         return 4
@@ -19,7 +19,7 @@ class NonEmpty(core.NonEmptyStringMixIn):
     pass
 
 
-class LimitedMinMaxLength(core.LimitedMinLengthMixIn, core.LimitedMaxLengthMixIn):
+class LimitedMinMaxLength(core.LimitedMinLengthStringMixIn, core.LimitedMaxLengthStringMixIn):
     @classmethod
     def get_min_length(cls) -> int:
         return 3
@@ -33,13 +33,13 @@ class Normalized(core.NormalizedStringMixIn):
     pass
 
 
-class NormalizedMinLength(core.NormalizedStringMixIn, core.LimitedMinLengthMixIn):
+class NormalizedMinLength(core.NormalizedStringMixIn, core.LimitedMinLengthStringMixIn):
     @classmethod
     def get_min_length(cls) -> int:
         return 3
 
 
-class NormalizedMaxLength(core.NormalizedStringMixIn, core.LimitedMaxLengthMixIn):
+class NormalizedMaxLength(core.NormalizedStringMixIn, core.LimitedMaxLengthStringMixIn):
     @classmethod
     def get_max_length(cls) -> int:
         return 4
@@ -53,13 +53,13 @@ class TrimmedNonEmpty(core.TrimmedStringMixIn, core.NonEmptyStringMixIn):
     pass
 
 
-class TrimmedMinLength(core.TrimmedStringMixIn, core.LimitedMinLengthMixIn):
+class TrimmedMinLength(core.TrimmedStringMixIn, core.LimitedMinLengthStringMixIn):
     @classmethod
     def get_min_length(cls) -> int:
         return 3
 
 
-class TrimmedMaxLength(core.TrimmedStringMixIn, core.LimitedMaxLengthMixIn):
+class TrimmedMaxLength(core.TrimmedStringMixIn, core.LimitedMaxLengthStringMixIn):
     @classmethod
     def get_max_length(cls) -> int:
         return 4

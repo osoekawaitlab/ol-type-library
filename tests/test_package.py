@@ -35,9 +35,9 @@ def test_oltl_has_base_update_time_aware_model() -> None:
 
 def test_oltl_has_string_mixins() -> None:
     oltl.BaseString == core.BaseString
-    oltl.LimitedMinLengthMixIn == core.LimitedMinLengthMixIn
+    oltl.LimitedMinLengthStringMixIn == core.LimitedMinLengthStringMixIn
     oltl.NonEmptyStringMixIn == core.NonEmptyStringMixIn
-    oltl.LimitedMaxLengthMixIn == core.LimitedMaxLengthMixIn
+    oltl.LimitedMaxLengthStringMixIn == core.LimitedMaxLengthStringMixIn
     oltl.NormalizedStringMixIn == core.NormalizedStringMixIn
     oltl.RegexSubstitutedStringMixIn == core.RegexSubstitutedStringMixIn
     oltl.TrimmedStringMixIn == core.TrimmedStringMixIn
