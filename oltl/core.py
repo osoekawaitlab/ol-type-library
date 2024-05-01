@@ -36,6 +36,7 @@ from .utils import normalize_jptext
 StringT = TypeVar("StringT", bound="BaseString")
 BytesT = TypeVar("BytesT", bound="BaseBytes")
 IntegerT = TypeVar("IntegerT", bound="BaseInteger")
+FloatT = TypeVar("FloatT", bound="BaseFloat")
 IdT = TypeVar("IdT", bound="Id")
 IncEx: TypeAlias = "set[int] | set[str] | dict[int, IncEx] | dict[str, IncEx] | None"
 
@@ -472,6 +473,96 @@ class LowerBoundIntegerMixIn(BaseInteger):
 
     @classmethod
     def get_min_value(cls) -> int:
+        raise NotImplementedError
+
+    @classmethod
+    def __get_extra_constraint_dict__(cls) -> dict[str, Any]:
+        return super().__get_extra_constraint_dict__() | {"ge": cls.get_min_value()}
+
+
+class BaseFloat(float):
+    """
+    BaseFloat is a float type that can be used to validate and serialize floats.
+
+    >>> BaseFloat(123.0)
+    BaseFloat(123.0)
+    >>> float(BaseFloat(123.0))
+    123.0
+    >>> ta = TypeAdapter(BaseFloat)
+    >>> ta.validate_python(123.0)
+    BaseFloat(123.0)
+    >>> ta.validate_python("string")
+    Traceback (most recent call last):
+     ...
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), float]
+      Input should be a valid number, unable to parse string as a number [type=float_parsing, input_value='string', input_type=str]
+     ...
+    >>> ta.dump_json(BaseFloat(123.0))
+    b'123.0'
+    >>> hash(BaseFloat(123.0)) == hash(123.0)
+    True
+    """  # noqa: E501
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({super().__repr__()})"
+
+    def __str__(self) -> str:
+        return super(BaseFloat, self).__str__()
+
+    @classmethod
+    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
+        return core_schema.no_info_after_validator_function(
+            cls.validate,
+            core_schema.float_schema(**cls.__get_extra_constraint_dict__()),
+            serialization=core_schema.plain_serializer_function_ser_schema(cls.serialize, when_used="json"),
+        )
+
+    def __get_pydantic_json_schema__(self, _handler: GetJsonSchemaHandler) -> JsonSchemaValue:
+        return {"type": "number"}
+
+    @classmethod
+    def validate(cls: Type[FloatT], value: Any) -> FloatT:
+        if isinstance(value, cls):
+            return value
+        if isinstance(value, float):
+            return cls(value)
+        raise ValueError(f"Cannot convert {value} to {cls.__name__}")
+
+    def serialize(self) -> float:
+        return float(self)
+
+    @classmethod
+    def __get_extra_constraint_dict__(cls) -> dict[str, Any]:
+        return {}
+
+    def __hash__(self) -> int:
+        return super(BaseFloat, self).__hash__()
+
+
+class LowerBoundFloatMixIn(BaseFloat):
+    """
+    LowerBoundFloatMixIn is a float type that can be used to validate and serialize floats with a lower bound.
+
+    >>> class TestFloat(LowerBoundFloatMixIn):
+    ...   LowerBoundFloatMixIn, BaseFloat
+    ...   @classmethod
+    ...   def get_min_value(cls) -> float:
+    ...     return 3.0
+    >>> TestFloat(3.0)
+    TestFloat(3.0)
+    >>> ta = TypeAdapter(TestFloat)
+    >>> ta.validate_python(3.0)
+    TestFloat(3.0)
+    >>> ta.validate_python(2.9)
+    Traceback (most recent call last):
+     ...
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), constrained-float]
+      Input should be greater than or equal to 3 [type=greater_than_equal, input_value=2.9, input_type=float]
+     ...
+    """  # noqa: E501
+
+    @classmethod
+    def get_min_value(cls) -> float:
         raise NotImplementedError
 
     @classmethod
