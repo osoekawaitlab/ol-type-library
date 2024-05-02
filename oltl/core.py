@@ -796,40 +796,6 @@ class BaseModel(PydanticBaseModel):
         )
 
 
-def _get_object_by_json_pointer(data: Dict[str, Any], json_pointer: str) -> Any:
-    """
-    >>> x = {
-    ...   '$defs': {
-    ...     'MyNestedModel': {
-    ...       'properties': {'obj': {'$ref': '#/$defs/MyNestedNestedModel'}},
-    ...       'required': ['obj'],
-    ...       'title': 'MyNestedModel',
-    ...       'type': 'object'
-    ...     },
-    ...     'MyNestedNestedModel': {
-    ...       'properties': {'name': {'title': 'Name', 'type': 'string'}, 'age': {'title': 'Age', 'type': 'integer'}},
-    ...       'required': ['name', 'age'],
-    ...       'title': 'MyNestedNestedModel',
-    ...       'type': 'object'
-    ...     }
-    ...   },
-    ...   'properties': {'nested': {'$ref': '#/$defs/MyNestedModel'}},
-    ...   'required': ['nested'],
-    ...   'title': 'MyModel',
-    ...   'type': 'object'
-    ... }
-    >>> _get_object_by_json_pointer(x, "#/$defs/MyNestedModel")
-    {'properties': {'obj': {'$ref': '#/$defs/MyNestedNestedModel'}}, 'required': ['obj'], 'title': 'MyNestedModel', 'type': 'object'}
-    """  # noqa: E501
-    if not json_pointer.startswith("#/"):
-        raise ValueError(f"Invalid JSON pointer: {json_pointer}")
-    keys = json_pointer[2:].split("/")
-    obj = data
-    for key in keys:
-        obj = obj[key]
-    return obj
-
-
 def _json_schema_type_to_python_type(json_schema_type: Dict[str, Any], defs: Dict[str, Type[BaseModel]]) -> Type[Any]:
     primitive_map: Dict[str, Type[int | str | float | bool]] = {
         "integer": int,
