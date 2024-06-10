@@ -62,3 +62,7 @@ def test_oltl_has_integer_mixins() -> None:
 def test_oltl_has_float_mixins() -> None:
     oltl.BaseFloat == core.BaseFloat
     oltl.LowerBoundFloatMixIn == core.LowerBoundFloatMixIn
+
+
+def test_oltl_has_json_acceptable() -> None:
+    oltl.JsonAcceptable == core.JsonAcceptable

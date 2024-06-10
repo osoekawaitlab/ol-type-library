@@ -9,6 +9,7 @@ from .core import (
     BaseUpdateTimeAwareModel,
     CamelCaseStringMixIn,
     Id,
+    JsonAcceptable,
     LimitedMaxLengthStringMixIn,
     LimitedMinLengthStringMixIn,
     LowerBoundFloatMixIn,
@@ -49,4 +50,5 @@ __all__ = [
     "CamelCaseStringMixIn",
     "BaseBytes",
     "json_schema_to_model",
+    "JsonAcceptable",
 ]
