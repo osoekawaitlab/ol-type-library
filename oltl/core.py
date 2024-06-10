@@ -39,6 +39,7 @@ IntegerT = TypeVar("IntegerT", bound="BaseInteger")
 FloatT = TypeVar("FloatT", bound="BaseFloat")
 IdT = TypeVar("IdT", bound="Id")
 IncEx: TypeAlias = "set[int] | set[str] | dict[int, IncEx] | dict[str, IncEx] | None"
+JsonAcceptable = Union[str, int, float, bool, None, dict[str, "JsonAcceptable"], list["JsonAcceptable"]]
 
 
 class BaseBytes(bytes):
@@ -85,7 +86,7 @@ class BaseBytes(bytes):
             return cls(value)
         raise ValueError(f"Cannot convert {value} to {cls.__name__}")
 
-    def serialize(self) -> str:
+    def serialize(self) -> JsonAcceptable:
         return standard_b64encode(self).decode()
 
     def __repr__(self) -> str:
@@ -144,7 +145,7 @@ class BaseString(str):
             serialization=core_schema.plain_serializer_function_ser_schema(cls.serialize, when_used="json"),
         )
 
-    def serialize(self) -> str:
+    def serialize(self) -> JsonAcceptable:
         return str(self)
 
     @classmethod
@@ -438,7 +439,7 @@ class BaseInteger(int):
             return cls(value)
         raise ValueError(f"Cannot convert {value} to {cls.__name__}")
 
-    def serialize(self) -> int:
+    def serialize(self) -> JsonAcceptable:
         return int(self)
 
     @classmethod
@@ -528,7 +529,7 @@ class BaseFloat(float):
             return cls(value)
         raise ValueError(f"Cannot convert {value} to {cls.__name__}")
 
-    def serialize(self) -> float:
+    def serialize(self) -> JsonAcceptable:
         return float(self)
 
     @classmethod
