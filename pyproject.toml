@@ -58,6 +58,11 @@ dev=[
 ]
 prod=[
 ]
+docs=[
+    "sphinx",
+    "sphinx_rtd_theme",
+    "sphinx-autodoc-typehints",
+]
 
 
 [tool.pytest.ini_options]
@@ -92,7 +97,7 @@ profile = "black"
 legacy_tox_ini = """
     [tox]
     skipsdist = true
-    envlist = py310
+    envlist = py310, docs
 
     [testenv]
     setenv = 
@@ -106,4 +111,11 @@ legacy_tox_ini = """
         pflake8 oltl/ tests/ stubs/
         mypy oltl --strict --show-traceback
         mypy tests --strict
+
+    [testenv:docs]
+    deps = 
+        -e .[docs]
+    commands =
+        sphinx-apidoc -o docs/ oltl
+        sphinx-build -b html docs/ docs/_build
 """
