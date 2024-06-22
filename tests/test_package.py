@@ -74,3 +74,8 @@ def test_oltl_has_type_vars() -> None:
     assert oltl.FloatT == core.FloatT
     assert oltl.BytesT == core.BytesT
     assert oltl.IdT == core.IdT
+
+
+def test_oltl_has_path_related_types() -> None:
+    assert oltl.NewOrExistingFilePath == core.NewOrExistingFilePath
+    assert oltl.NewOrExistingDirectoryPath == core.NewOrExistingDirectoryPath

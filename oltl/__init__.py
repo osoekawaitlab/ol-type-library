@@ -18,6 +18,8 @@ from .core import (
     LimitedMinLengthStringMixIn,
     LowerBoundFloatMixIn,
     LowerBoundIntegerMixIn,
+    NewOrExistingDirectoryPath,
+    NewOrExistingFilePath,
     NonEmptyStringMixIn,
     NormalizedStringMixIn,
     RegexMatchedStringMixIn,
@@ -61,4 +63,6 @@ __all__ = [
     "FloatT",
     "BytesT",
     "IdT",
+    "NewOrExistingDirectoryPath",
+    "NewOrExistingFilePath",
 ]

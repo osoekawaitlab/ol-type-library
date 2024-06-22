@@ -20,9 +20,12 @@ from dateutil.parser import parse as parse_datetime
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import (
     ConfigDict,
+    DirectoryPath,
     Field,
+    FilePath,
     GetCoreSchemaHandler,
     GetJsonSchemaHandler,
+    NewPath,
     TypeAdapter,
     create_model,
 )
@@ -40,6 +43,8 @@ FloatT = TypeVar("FloatT", bound="BaseFloat")
 IdT = TypeVar("IdT", bound="Id")
 IncEx: TypeAlias = "set[int] | set[str] | dict[int, IncEx] | dict[str, IncEx] | None"
 JsonAcceptable = Union[str, int, float, bool, None, dict[str, "JsonAcceptable"], list["JsonAcceptable"]]
+NewOrExistingFilePath = Union[FilePath, NewPath]
+NewOrExistingDirectoryPath = Union[DirectoryPath, NewPath]
 
 
 class BaseBytes(bytes):
