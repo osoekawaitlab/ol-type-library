@@ -10,59 +10,67 @@ def test_oltl_has_version() -> None:
 
 
 def test_oltl_has_id() -> None:
-    oltl.Id == core.Id
+    assert oltl.Id == core.Id
 
 
 def test_oltl_has_timestamp() -> None:
-    oltl.Timestamp == core.Timestamp
+    assert oltl.Timestamp == core.Timestamp
 
 
 def test_oltl_has_base_model() -> None:
-    oltl.BaseModel == core.BaseModel
+    assert oltl.BaseModel == core.BaseModel
 
 
 def test_oltl_has_base_entity() -> None:
-    oltl.BaseEntity == core.BaseEntity
+    assert oltl.BaseEntity == core.BaseEntity
 
 
 def test_oltl_has_base_creation_time_aware_model() -> None:
-    oltl.BaseCreationTimeAwareModel == core.BaseCreationTimeAwareModel
+    assert oltl.BaseCreationTimeAwareModel == core.BaseCreationTimeAwareModel
 
 
 def test_oltl_has_base_update_time_aware_model() -> None:
-    oltl.BaseCreationTimeAwareModel == core.BaseCreationTimeAwareModel
+    assert oltl.BaseCreationTimeAwareModel == core.BaseCreationTimeAwareModel
 
 
 def test_oltl_has_string_mixins() -> None:
-    oltl.BaseString == core.BaseString
-    oltl.LimitedMinLengthStringMixIn == core.LimitedMinLengthStringMixIn
-    oltl.NonEmptyStringMixIn == core.NonEmptyStringMixIn
-    oltl.LimitedMaxLengthStringMixIn == core.LimitedMaxLengthStringMixIn
-    oltl.NormalizedStringMixIn == core.NormalizedStringMixIn
-    oltl.RegexSubstitutedStringMixIn == core.RegexSubstitutedStringMixIn
-    oltl.TrimmedStringMixIn == core.TrimmedStringMixIn
-    oltl.SnakeCaseStringMixIn == core.SnakeCaseStringMixIn
-    oltl.CamelCaseStringMixIn == core.CamelCaseStringMixIn
-    oltl.RegexMatchedStringMixIn == core.RegexMatchedStringMixIn
+    assert oltl.BaseString == core.BaseString
+    assert oltl.LimitedMinLengthStringMixIn == core.LimitedMinLengthStringMixIn
+    assert oltl.NonEmptyStringMixIn == core.NonEmptyStringMixIn
+    assert oltl.LimitedMaxLengthStringMixIn == core.LimitedMaxLengthStringMixIn
+    assert oltl.NormalizedStringMixIn == core.NormalizedStringMixIn
+    assert oltl.RegexSubstitutedStringMixIn == core.RegexSubstitutedStringMixIn
+    assert oltl.TrimmedStringMixIn == core.TrimmedStringMixIn
+    assert oltl.SnakeCaseStringMixIn == core.SnakeCaseStringMixIn
+    assert oltl.CamelCaseStringMixIn == core.CamelCaseStringMixIn
+    assert oltl.RegexMatchedStringMixIn == core.RegexMatchedStringMixIn
 
 
 def test_oltl_has_base_bytes() -> None:
-    oltl.BaseBytes == core.BaseBytes
+    assert oltl.BaseBytes == core.BaseBytes
 
 
 def test_oltl_has_json_schema_to_model() -> None:
-    oltl.json_schema_to_model == core.json_schema_to_model
+    assert oltl.json_schema_to_model == core.json_schema_to_model
 
 
 def test_oltl_has_integer_mixins() -> None:
-    oltl.BaseInteger == core.BaseInteger
-    oltl.LowerBoundIntegerMixIn == core.LowerBoundIntegerMixIn
+    assert oltl.BaseInteger == core.BaseInteger
+    assert oltl.LowerBoundIntegerMixIn == core.LowerBoundIntegerMixIn
 
 
 def test_oltl_has_float_mixins() -> None:
-    oltl.BaseFloat == core.BaseFloat
-    oltl.LowerBoundFloatMixIn == core.LowerBoundFloatMixIn
+    assert oltl.BaseFloat == core.BaseFloat
+    assert oltl.LowerBoundFloatMixIn == core.LowerBoundFloatMixIn
 
 
 def test_oltl_has_json_acceptable() -> None:
-    oltl.JsonAcceptable == core.JsonAcceptable
+    assert oltl.JsonAcceptable == core.JsonAcceptable
+
+
+def test_oltl_has_type_vars() -> None:
+    assert oltl.StringT == core.StringT
+    assert oltl.IntegerT == core.IntegerT
+    assert oltl.FloatT == core.FloatT
+    assert oltl.BytesT == core.BytesT
+    assert oltl.IdT == core.IdT
