@@ -387,8 +387,8 @@ class CamelCaseStringMixIn(BaseString):
     TestString('test')
     >>> ta.validate_python("test_test")
     TestString('testTest')
-    >>> ta.validate_python("alreadyCamelCasedWillBeLowerCased")
-    TestString('alreadycamelcasedwillbelowercased')
+    >>> ta.validate_python("alreadyCamelCasedWontBeLowerCased")
+    TestString('alreadyCamelCasedWontBeLowerCased')
     """
 
     @classmethod

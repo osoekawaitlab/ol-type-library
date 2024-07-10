@@ -418,7 +418,7 @@ string_test_cases = [
             ),
             (
                 "kebab-case",
-                "kebab-case",
+                "kebab_case",
             ),
             ("UPPER_CASE", "upper_case"),
             (
