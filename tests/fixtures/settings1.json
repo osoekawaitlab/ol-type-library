@@ -1,0 +1,6 @@
+{
+  "nested": {
+    "nested_attr": "nested_value",
+    "nested_numeric": 1.0
+  }
+}

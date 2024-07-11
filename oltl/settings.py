@@ -8,6 +8,8 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
+from .utils import patch_config_value
+
 SettingsClassT = TypeVar("SettingsClassT", bound="BaseSettings")
 
 
@@ -34,7 +36,7 @@ class BaseSettings(PydanticBaseSettings):
     '{"some_nested_value":{"some_value":"value"}}'
     """
 
-    model_config = SettingsConfigDict(env_file_encoding="utf-8", env_nested_delimiter="__", frozen=False)
+    model_config = SettingsConfigDict(env_file_encoding="utf-8", env_nested_delimiter="__")
 
     config_path: Optional[FilePath] = Field(default=None, exclude=True)
 
@@ -49,13 +51,15 @@ class BaseSettings(PydanticBaseSettings):
     ) -> tuple[PydanticBaseSettingsSource, ...]:
         return (
             init_settings,
+            JsonConfigSettingsSource(settings_cls),
             env_settings,
             dotenv_settings,
             file_secret_settings,
-            JsonConfigSettingsSource(settings_cls),
         )
 
 
-def load_settings(setting_cls: Type[SettingsClassT], json_file_path: str) -> SettingsClassT:
-    setting_cls.model_config["json_file"] = json_file_path
+def load_settings(setting_cls: Type[SettingsClassT], json_file_path: Optional[str] = None) -> SettingsClassT:
+    if json_file_path is not None:
+        with patch_config_value(setting_cls, "json_file", json_file_path):
+            return setting_cls()
     return setting_cls()

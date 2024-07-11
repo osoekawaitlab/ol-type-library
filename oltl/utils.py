@@ -1,5 +1,10 @@
 import re
 import unicodedata
+from collections.abc import Generator
+from contextlib import contextmanager
+from typing import Any, Literal, Type
+
+from pydantic_settings import BaseSettings
 
 normalize_trans_map = str.maketrans(
     {
@@ -35,3 +40,15 @@ def normalize_jptext(
         r") \1", parentheses_left.sub(r"\1 (", unicodedata.normalize("NFKC", x).translate(normalize_trans_map))
     )
     return normalized_string
+
+
+@contextmanager
+def patch_config_value(
+    cls: Type[BaseSettings],
+    key: Literal["json_file",],
+    value: Any,
+) -> Generator[None, None, None]:
+    old_value = cls.model_config[key]
+    cls.model_config[key] = value
+    yield
+    cls.model_config[key] = old_value
