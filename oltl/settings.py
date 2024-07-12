@@ -59,13 +59,13 @@ class BaseSettings(PydanticBaseSettings):
             file_secret_settings,
         )
 
-
-def load_settings(setting_cls: Type[SettingsClassT], setting_file_path: Optional[str] = None) -> SettingsClassT:
-    if setting_file_path is not None:
-        if setting_file_path.endswith(".json"):
-            with patch_config_value(setting_cls, "json_file", setting_file_path):
-                return setting_cls()
-        if setting_file_path.endswith(".yaml") or setting_file_path.endswith(".yml"):
-            with patch_config_value(setting_cls, "yaml_file", setting_file_path):
-                return setting_cls()
-    return setting_cls()
+    @classmethod
+    def load(cls: Type[SettingsClassT], setting_file_path: Optional[str] = None) -> SettingsClassT:
+        if setting_file_path is not None:
+            if setting_file_path.endswith(".json"):
+                with patch_config_value(cls, "json_file", setting_file_path):
+                    return cls()
+            if setting_file_path.endswith(".yaml") or setting_file_path.endswith(".yml"):
+                with patch_config_value(cls, "yaml_file", setting_file_path):
+                    return cls()
+        return cls()
