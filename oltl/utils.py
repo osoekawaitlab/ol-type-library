@@ -45,7 +45,7 @@ def normalize_jptext(
 @contextmanager
 def patch_config_value(
     cls: Type[BaseSettings],
-    key: Literal["json_file",],
+    key: Literal["json_file", "yaml_file"],
     value: Any,
 ) -> Generator[None, None, None]:
     old_value = cls.model_config[key]

@@ -6,6 +6,7 @@ from pydantic_settings import (
     JsonConfigSettingsSource,
     PydanticBaseSettingsSource,
     SettingsConfigDict,
+    YamlConfigSettingsSource,
 )
 
 from .utils import patch_config_value
@@ -52,14 +53,19 @@ class BaseSettings(PydanticBaseSettings):
         return (
             init_settings,
             JsonConfigSettingsSource(settings_cls),
+            YamlConfigSettingsSource(settings_cls),
             env_settings,
             dotenv_settings,
             file_secret_settings,
         )
 
 
-def load_settings(setting_cls: Type[SettingsClassT], json_file_path: Optional[str] = None) -> SettingsClassT:
-    if json_file_path is not None:
-        with patch_config_value(setting_cls, "json_file", json_file_path):
-            return setting_cls()
+def load_settings(setting_cls: Type[SettingsClassT], setting_file_path: Optional[str] = None) -> SettingsClassT:
+    if setting_file_path is not None:
+        if setting_file_path.endswith(".json"):
+            with patch_config_value(setting_cls, "json_file", setting_file_path):
+                return setting_cls()
+        if setting_file_path.endswith(".yaml") or setting_file_path.endswith(".yml"):
+            with patch_config_value(setting_cls, "yaml_file", setting_file_path):
+                return setting_cls()
     return setting_cls()

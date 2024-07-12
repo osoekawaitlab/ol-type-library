@@ -40,3 +40,10 @@ def test_load_settings_with_envvar(oltl_nested_settings_envvar: None) -> None:
     assert actual == expected
     assert actual.nested.nested_attr == "environ_nested_attr"
     assert actual.nested.nested_numeric == -1.0
+
+
+def test_load_settings_with_settings_yml(settings_yml_path: str) -> None:
+
+    actual = settings.load_settings(Settings, settings_yml_path)
+    expected = Settings(nested=NestedSettings(nested_attr="value_from_yml", nested_numeric=2.0))
+    assert actual == expected

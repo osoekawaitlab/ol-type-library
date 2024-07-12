@@ -21,6 +21,16 @@ def settings1_json_path(fixtures_dir: str) -> Generator[str, None, None]:
 
 
 @fixture
+def settings_yaml_path(fixtures_dir: str) -> Generator[str, None, None]:
+    yield os.path.join(fixtures_dir, "settings.yaml")
+
+
+@fixture
+def settings_yml_path(fixtures_dir: str) -> Generator[str, None, None]:
+    yield os.path.join(fixtures_dir, "settings.yml")
+
+
+@fixture
 def oltl_nested_settings_envvar(mocker: MockerFixture) -> Generator[None, None, None]:
     mocker.patch.dict(
         os.environ,
