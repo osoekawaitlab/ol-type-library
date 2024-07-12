@@ -1,0 +1,3 @@
+nested:
+  nested_attr: value_from_yml
+  nested_numeric: 2.0
