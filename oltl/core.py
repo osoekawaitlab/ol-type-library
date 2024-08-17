@@ -287,6 +287,12 @@ class RegexSubstitutedStringMixIn(BaseString):
     ...     return " "
     >>> TestString.from_str("test\ntest")
     TestString('test test')
+    >>> class MultipleSubstitutionTestString(RegexSubstitutedStringMixIn, BaseString):
+    ...   @classmethod
+    ...   def get_pattern_to_repl_map(cls) -> Dict[str, str]:
+    ...     return {"[\n\r]": " ", r"([a-z]*)": r"\1\1"}
+    >>> MultipleSubstitutionTestString.from_str("test\ntest")
+    MultipleSubstitutionTestString('testtest testtest')
     """
 
     @classmethod
@@ -298,8 +304,14 @@ class RegexSubstitutedStringMixIn(BaseString):
         raise NotImplementedError
 
     @classmethod
+    def get_pattern_to_repl_map(cls) -> Dict[str, str]:
+        return {cls.get_pattern(): cls.get_repl()}
+
+    @classmethod
     def _proc_str(cls, s: str) -> str:
-        return super()._proc_str(re.sub(cls.get_pattern(), cls.get_repl(), s))
+        for pattern, repl in cls.get_pattern_to_repl_map().items():
+            s = re.sub(pattern, repl, s)
+        return super()._proc_str(s)
 
 
 class RegexMatchedStringMixIn(BaseString):
