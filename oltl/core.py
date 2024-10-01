@@ -2,18 +2,7 @@ import re
 from base64 import standard_b64decode, standard_b64encode
 from datetime import datetime as _datetime
 from datetime import timezone as _timezone
-from typing import (
-    Any,
-    Dict,
-    Generic,
-    Literal,
-    Sequence,
-    Type,
-    TypeAlias,
-    TypeVar,
-    Union,
-    cast,
-)
+from typing import Any, Dict, Generic, Literal, Sequence, Type, TypeVar, Union, cast
 
 import ulid
 from dateutil.parser import parse as parse_datetime
@@ -31,6 +20,7 @@ from pydantic import (
 )
 from pydantic.alias_generators import to_camel, to_snake
 from pydantic.json_schema import JsonSchemaValue
+from pydantic.main import IncEx
 from pydantic_core import core_schema
 from ulid import ULID
 
@@ -41,7 +31,6 @@ BytesT = TypeVar("BytesT", bound="BaseBytes")
 IntegerT = TypeVar("IntegerT", bound="BaseInteger")
 FloatT = TypeVar("FloatT", bound="BaseFloat")
 IdT = TypeVar("IdT", bound="Id")
-IncEx: TypeAlias = "set[int] | set[str] | dict[int, IncEx] | dict[str, IncEx] | None"
 JsonAcceptable = Union[str, int, float, bool, None, dict[str, "JsonAcceptable"], list["JsonAcceptable"]]
 NewOrExistingFilePath = Union[FilePath, NewPath]
 NewOrExistingDirectoryPath = Union[DirectoryPath, NewPath]
@@ -788,8 +777,8 @@ class BaseModel(PydanticBaseModel):
         self,
         *,
         indent: int | None = None,
-        include: IncEx = None,
-        exclude: IncEx = None,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
         context: JsonSchemaValue | None = None,
         by_alias: bool = True,
         exclude_unset: bool = False,
