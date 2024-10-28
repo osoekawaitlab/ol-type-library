@@ -780,6 +780,10 @@ class BaseModel(PydanticBaseModel):
     def __del__(self) -> None:
         self.on_delete()
 
+    def __setattr__(self, name: str, value: Any) -> None:
+        super(BaseModel, self).__setattr__(name, value)
+        self.on_update(name, value)
+
     def model_dump_json(
         self,
         *,
@@ -817,10 +821,6 @@ class BaseModel(PydanticBaseModel):
 
     def on_delete(self) -> None:
         pass
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        super(BaseModel, self).__setattr__(name, value)
-        self.on_update(name, value)
 
 
 def _json_schema_type_to_python_type(json_schema_type: Dict[str, Any], defs: Dict[str, Type[BaseModel]]) -> Type[Any]:
