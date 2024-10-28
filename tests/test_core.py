@@ -1,7 +1,7 @@
 import re
 from collections.abc import Sequence
 from datetime import datetime, timezone
-from typing import Tuple, TypeAlias, Union
+from typing import Any, Tuple, TypeAlias, Union
 
 import pytest
 from freezegun import freeze_time
@@ -83,6 +83,42 @@ def test_base_model_has_on_create_hook() -> None:
     assert item_count == 1
     MyModel(name="bar")
     assert item_count == 2
+
+
+def test_base_model_has_on_update_hook() -> None:
+    item_count = 0
+
+    class MyModel(core.BaseModel):
+        name: str
+
+        def on_update(self, name: str, value: Any) -> None:
+            nonlocal item_count
+            item_count += 1
+
+    assert item_count == 0
+    model = MyModel(name="foo")
+    assert item_count == 0
+    model.name = "bar"
+    assert item_count == 1
+    model.name = "baz"
+    assert item_count == 2
+
+
+def test_base_model_has_on_delete_hook() -> None:
+    item_count = 0
+
+    class MyModel(core.BaseModel):
+        name: str
+
+        def on_delete(self) -> None:
+            nonlocal item_count
+            item_count += 1
+
+    assert item_count == 0
+    model = MyModel(name="foo")
+    assert item_count == 0
+    del model
+    assert item_count == 1
 
 
 def test_json_schema_to_model_basic_case() -> None:
