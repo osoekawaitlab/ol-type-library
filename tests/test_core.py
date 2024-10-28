@@ -68,6 +68,23 @@ def test_string_mixins(sut: TypeAlias, test_cases: Sequence[Tuple[str, Union[Val
             assert actual.value == expected
 
 
+def test_base_model_has_on_create_hook() -> None:
+    item_count = 0
+
+    class MyModel(core.BaseModel):
+        name: str
+
+        def on_create(self) -> None:
+            nonlocal item_count
+            item_count += 1
+
+    assert item_count == 0
+    MyModel(name="foo")
+    assert item_count == 1
+    MyModel(name="bar")
+    assert item_count == 2
+
+
 def test_json_schema_to_model_basic_case() -> None:
     class MyModel(core.BaseModel):
         name: str

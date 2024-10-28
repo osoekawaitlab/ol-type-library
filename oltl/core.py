@@ -773,6 +773,10 @@ class BaseModel(PydanticBaseModel):
 
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel, validate_assignment=True)
 
+    def __init__(self, /, **data: Any) -> None:
+        super(BaseModel, self).__init__(**data)
+        self.on_create()
+
     def model_dump_json(
         self,
         *,
@@ -801,6 +805,9 @@ class BaseModel(PydanticBaseModel):
             warnings=warnings,
             serialize_as_any=serialize_as_any,
         )
+
+    def on_create(self) -> None:
+        pass
 
 
 def _json_schema_type_to_python_type(json_schema_type: Dict[str, Any], defs: Dict[str, Type[BaseModel]]) -> Type[Any]:
