@@ -2,6 +2,7 @@ import re
 from base64 import standard_b64decode, standard_b64encode
 from datetime import datetime as _datetime
 from datetime import timezone as _timezone
+from types import MappingProxyType
 from typing import Any, Dict, Generic, Literal, Sequence, Type, TypeVar, Union, cast
 
 import ulid
@@ -282,6 +283,10 @@ class RegexSubstitutedStringMixIn(BaseString):
     ...     return {"[\n\r]": " ", r"([a-z]*)": r"\1\1"}
     >>> MultipleSubstitutionTestString.from_str("test\ntest")
     MultipleSubstitutionTestString('testtest testtest')
+    >>> TestString.get_pattern_to_repl_map()["a"] = "b"
+    Traceback (most recent call last):
+     ...
+    TypeError: 'mappingproxy' object does not support item assignment
     """
 
     @classmethod
@@ -293,8 +298,8 @@ class RegexSubstitutedStringMixIn(BaseString):
         raise NotImplementedError
 
     @classmethod
-    def get_pattern_to_repl_map(cls) -> Dict[str, str]:
-        return {cls.get_pattern(): cls.get_repl()}
+    def get_pattern_to_repl_map(cls) -> MappingProxyType[str, str]:
+        return MappingProxyType({cls.get_pattern(): cls.get_repl()})
 
     @classmethod
     def _proc_str(cls, s: str) -> str:
