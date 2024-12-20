@@ -11,7 +11,7 @@ from ulid import ULID
 
 from oltl import core
 
-from .fixtures import integer_test_cases, string_test_cases
+from .fixtures import float_test_cases, integer_test_cases, string_test_cases
 
 
 def test_id_generates_inherited_class_instance() -> None:
@@ -70,6 +70,20 @@ def test_string_mixins(sut: TypeAlias, test_cases: Sequence[Tuple[str, Union[Val
 
 @pytest.mark.parametrize(argnames=["sut", "test_cases"], argvalues=integer_test_cases)
 def test_integer_mixins(sut: TypeAlias, test_cases: Sequence[Tuple[int, Union[ValueError, int]]]) -> None:
+    class TestModel(core.BaseModel):
+        value: sut
+
+    for test_case, expected in test_cases:
+        if isinstance(expected, Exception):
+            with pytest.raises(expected.__class__, match=re.escape(expected.__str__())):
+                TestModel(value=test_case)
+        else:
+            actual = TestModel(value=test_case)
+            assert actual.value == expected
+
+
+@pytest.mark.parametrize(argnames=["sut", "test_cases"], argvalues=float_test_cases)
+def test_float_mixins(sut: TypeAlias, test_cases: Sequence[Tuple[float, Union[ValueError, float]]]) -> None:
     class TestModel(core.BaseModel):
         value: sut
 

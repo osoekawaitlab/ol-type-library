@@ -508,3 +508,53 @@ integer_test_cases = [
         ),
     ),
 ]
+
+
+class UpperAndLowerBoundFloat(core.UpperBoundFloatMixIn, core.LowerBoundFloatMixIn):
+    @classmethod
+    def get_min_value(cls) -> float:
+        return 3.0
+
+    @classmethod
+    def get_max_value(cls) -> float:
+        return 5.0
+
+
+float_test_cases = [
+    (
+        UpperAndLowerBoundFloat,
+        (
+            (
+                2.9,
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "greater_than_equal",
+                            "ctx": {"ge": 3.0},
+                            "input": 2.9,
+                        }
+                    ],
+                ),
+            ),
+            (3.0, 3.0),
+            (4.0, 4.0),
+            (5.0, 5.0),
+            (
+                5.1,
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "less_than_equal",
+                            "ctx": {"le": 5.0},
+                            "input": 5.1,
+                        }
+                    ],
+                ),
+            ),
+        ),
+    ),
+]
