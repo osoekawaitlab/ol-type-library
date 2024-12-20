@@ -458,3 +458,53 @@ string_test_cases = [
         ),
     ),
 ]
+
+
+class UpperAndLowerBoundInteger(core.UpperBoundIntegerMixIn, core.LowerBoundIntegerMixIn):
+    @classmethod
+    def get_min_value(cls) -> int:
+        return 3
+
+    @classmethod
+    def get_max_value(cls) -> int:
+        return 5
+
+
+integer_test_cases = [
+    (
+        UpperAndLowerBoundInteger,
+        (
+            (
+                2,
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "greater_than_equal",
+                            "ctx": {"ge": 3},
+                            "input": 2,
+                        }
+                    ],
+                ),
+            ),
+            (3, 3),
+            (4, 4),
+            (5, 5),
+            (
+                6,
+                ValidationError.from_exception_data(
+                    title="TestModel",
+                    line_errors=[
+                        {
+                            "loc": ("value",),
+                            "type": "less_than_equal",
+                            "ctx": {"le": 5},
+                            "input": 6,
+                        }
+                    ],
+                ),
+            ),
+        ),
+    ),
+]

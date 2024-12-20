@@ -492,6 +492,37 @@ class LowerBoundIntegerMixIn(BaseInteger):
         return super().__get_extra_constraint_dict__() | {"ge": cls.get_min_value()}
 
 
+class UpperBoundIntegerMixIn(BaseInteger):
+    """
+    UpperBoundIntegerMixIn is an integer type that can be used to validate and serialize integers with an upper bound.
+
+    >>> class TestInteger(UpperBoundIntegerMixIn):
+    ...   UpperBoundIntegerMixIn, BaseInteger
+    ...   @classmethod
+    ...   def get_max_value(cls) -> int:
+    ...     return 3
+    >>> TestInteger(3)
+    TestInteger(3)
+    >>> ta = TypeAdapter(TestInteger)
+    >>> ta.validate_python(3)
+    TestInteger(3)
+    >>> ta.validate_python(4)
+    Traceback (most recent call last):
+     ...
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), constrained-int]
+      Input should be less than or equal to 3 [type=less_than_equal, input_value=4, input_type=int]
+     ...
+    """  # noqa: E501
+
+    @classmethod
+    def get_max_value(cls) -> int:
+        raise NotImplementedError
+
+    @classmethod
+    def __get_extra_constraint_dict__(cls) -> dict[str, Any]:
+        return super().__get_extra_constraint_dict__() | {"le": cls.get_max_value()}
+
+
 class BaseFloat(float):
     """
     BaseFloat is a float type that can be used to validate and serialize floats.
