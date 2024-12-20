@@ -613,6 +613,37 @@ class LowerBoundFloatMixIn(BaseFloat):
         return super().__get_extra_constraint_dict__() | {"ge": cls.get_min_value()}
 
 
+class UpperBoundFloatMixIn(BaseFloat):
+    """
+    UpperBoundFloatMixIn is a float type that can be used to validate and serialize floats with an upper bound.
+
+    >>> class TestFloat(UpperBoundFloatMixIn):
+    ...   UpperBoundFloatMixIn, BaseFloat
+    ...   @classmethod
+    ...   def get_max_value(cls) -> float:
+    ...     return 3.0
+    >>> TestFloat(3.0)
+    TestFloat(3.0)
+    >>> ta = TypeAdapter(TestFloat)
+    >>> ta.validate_python(3.0)
+    TestFloat(3.0)
+    >>> ta.validate_python(3.1)
+    Traceback (most recent call last):
+     ...
+    pydantic_core._pydantic_core.ValidationError: 1 validation error for function-after[validate(), constrained-float]
+      Input should be less than or equal to 3 [type=less_than_equal, input_value=3.1, input_type=float]
+     ...
+    """  # noqa: E501
+
+    @classmethod
+    def get_max_value(cls) -> float:
+        raise NotImplementedError
+
+    @classmethod
+    def __get_extra_constraint_dict__(cls) -> dict[str, Any]:
+        return super().__get_extra_constraint_dict__() | {"le": cls.get_max_value()}
+
+
 class Id(ULID):
     r"""Id is a string type that can be used to validate and serialize ULID strings.
 
