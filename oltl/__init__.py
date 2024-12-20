@@ -28,6 +28,7 @@ from .core import (
     StringT,
     Timestamp,
     TrimmedStringMixIn,
+    UpperBoundIntegerMixIn,
     json_schema_to_model,
 )
 
@@ -52,6 +53,7 @@ __all__ = [
     "NormalizedStringMixIn",
     "RegexSubstitutedStringMixIn",
     "RegexMatchedStringMixIn",
+    "UpperBoundIntegerMixIn",
     "TrimmedStringMixIn",
     "SnakeCaseStringMixIn",
     "CamelCaseStringMixIn",

@@ -57,6 +57,7 @@ def test_oltl_has_json_schema_to_model() -> None:
 def test_oltl_has_integer_mixins() -> None:
     assert oltl.BaseInteger == core.BaseInteger
     assert oltl.LowerBoundIntegerMixIn == core.LowerBoundIntegerMixIn
+    assert oltl.UpperBoundIntegerMixIn == core.UpperBoundIntegerMixIn
 
 
 def test_oltl_has_float_mixins() -> None:
