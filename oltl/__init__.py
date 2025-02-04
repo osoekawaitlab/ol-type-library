@@ -33,7 +33,7 @@ from .core import (
     json_schema_to_model,
 )
 
-__version__ = "1.1.3"
+__version__ = "1.1.4"
 
 __all__ = [
     "Id",

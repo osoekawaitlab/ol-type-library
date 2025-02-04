@@ -35,6 +35,7 @@ IdT = TypeVar("IdT", bound="Id")
 JsonAcceptable = Union[str, int, float, bool, None, dict[str, "JsonAcceptable"], list["JsonAcceptable"]]
 NewOrExistingFilePath = Union[FilePath, NewPath]
 NewOrExistingDirectoryPath = Union[DirectoryPath, NewPath]
+PatternT = Union[str, re.Pattern[str]]
 
 
 class BaseBytes(bytes):
@@ -270,7 +271,7 @@ class RegexSubstitutedStringMixIn(BaseString):
 
     >>> class TestString(RegexSubstitutedStringMixIn, BaseString):
     ...   @classmethod
-    ...   def get_pattern(cls) -> str:
+    ...   def get_pattern(cls) -> PatternT:
     ...     return r"[\n\r]"
     ...   @classmethod
     ...   def get_repl(cls) -> str:
@@ -290,7 +291,7 @@ class RegexSubstitutedStringMixIn(BaseString):
     """
 
     @classmethod
-    def get_pattern(cls) -> str:
+    def get_pattern(cls) -> PatternT:
         raise NotImplementedError
 
     @classmethod
@@ -298,7 +299,7 @@ class RegexSubstitutedStringMixIn(BaseString):
         raise NotImplementedError
 
     @classmethod
-    def get_pattern_to_repl_map(cls) -> MappingProxyType[str, str]:
+    def get_pattern_to_repl_map(cls) -> MappingProxyType[PatternT, str]:
         return MappingProxyType({cls.get_pattern(): cls.get_repl()})
 
     @classmethod
@@ -314,7 +315,7 @@ class RegexMatchedStringMixIn(BaseString):
 
     >>> class TestString(RegexMatchedStringMixIn, BaseString):
     ...   @classmethod
-    ...   def get_pattern(cls) -> str:
+    ...   def get_pattern(cls) -> PatternT:
     ...     return r"^[a-z]+$"
     >>> TestString("test")
     TestString('test')
@@ -330,7 +331,7 @@ class RegexMatchedStringMixIn(BaseString):
     """  # noqa: E501
 
     @classmethod
-    def get_pattern(cls) -> str:
+    def get_pattern(cls) -> PatternT:
         raise NotImplementedError
 
     @classmethod
