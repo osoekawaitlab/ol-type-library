@@ -1,12 +1,30 @@
 import re
 from base64 import standard_b64decode, standard_b64encode
+from collections.abc import Callable
 from datetime import datetime as _datetime
 from datetime import timezone as _timezone
 from types import MappingProxyType
-from typing import Any, Dict, Generic, Literal, Sequence, Type, TypeVar, Union, cast
+from typing import (
+    Any,
+    Dict,
+    Generic,
+    Literal,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+)
 
 import ulid
 from dateutil.parser import parse as parse_datetime
+from pydantic import (
+    AliasGenerator,
+    AliasPath,
+)
+from pydantic import BaseModel
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import (
     ConfigDict,
@@ -23,8 +41,10 @@ from pydantic.alias_generators import to_camel, to_snake
 from pydantic.json_schema import JsonSchemaValue
 from pydantic.main import IncEx
 from pydantic_core import core_schema
+from typing_extensions import Unpack
 from ulid import ULID
 
+from .exceptions import UnresolvedReferenceError
 from .utils import normalize_jptext
 
 StringT = TypeVar("StringT", bound="BaseString")
@@ -859,12 +879,13 @@ class BaseModel(PydanticBaseModel):
         include: IncEx | None = None,
         exclude: IncEx | None = None,
         context: JsonSchemaValue | None = None,
-        by_alias: bool = True,
+        by_alias: bool | None = True,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
         round_trip: bool = False,
         warnings: bool | Literal["none"] | Literal["warn"] | Literal["error"] = True,
+        fallback: Callable[[Any], Any] | None = None,
         serialize_as_any: bool = False,
     ) -> str:
         return super().model_dump_json(
@@ -1053,3 +1074,119 @@ class BaseUpdateTimeAwareModel(BaseCreationTimeAwareModel):
         except Exception as e:
             raise e
         super(BaseUpdateTimeAwareModel, self).__setattr__("updated_at", Timestamp.now())
+
+
+class Reference:
+    def __init__(self, resolve_field_suffix: str = "_id"):
+        self._resolve_field_suffix = resolve_field_suffix
+
+    @property
+    def resolve_field_suffix(self) -> str:
+        return self._resolve_field_suffix
+
+
+class ReferenceProxy(Generic[IdT]):
+    def __init__(self, id_value: IdT, target_type: Type[BaseEntity[IdT]]):
+        self._id = id_value
+        self._target_type = target_type
+        self._resolved = None
+
+    def __getattr__(self, name: str) -> Any:
+        if self._resolved is None:
+            raise UnresolvedReferenceError(f"Unresolved reference: {self._id!r}")
+        return getattr(self._resolved, name)
+
+    def resolve(self, entity: BaseEntity[IdT]) -> BaseEntity[IdT]:
+        self._resolved = entity
+        return entity
+
+
+class BaseModelWithReference(BaseModel):
+
+    def resolve(self, id_resolver: Dict[Any, Any]):
+        """参照を解決"""
+        for field_name, proxy in self._reference_proxies.items():
+            if proxy._id in id_resolver:
+                entity = id_resolver[proxy._id]
+                proxy.resolve(entity)
+                setattr(self, field_name, entity)
+
+    def model_dump(
+        self,
+        *,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        context: Any | None = None,
+        by_alias: bool | None = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        round_trip: bool = False,
+        warnings: bool | Literal["none"] | Literal["warn"] | Literal["error"] = True,
+        fallback: Callable[[Any], Any] | None = None,
+        serialize_as_any: bool = False,
+    ) -> Dict[str, Any]:
+        result = super().model_dump(
+            include=include,
+            exclude=exclude,
+            context=context,
+            by_alias=by_alias,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+            round_trip=round_trip,
+            warnings=warnings,
+            fallback=fallback,
+            serialize_as_any=serialize_as_any,
+        )
+
+        for field_name, value in self.__dict__.items():
+            if field_name.startswith("_"):
+                continue
+
+            # 参照プロキシの場合はID値を使用
+            if isinstance(value, ReferenceProxy):
+                # 対応するIDフィールドを探す
+                for fname, finfo in self.__class__.model_fields.items():
+                    if hasattr(finfo.annotation, "__metadata__"):
+                        metadata = finfo.annotation.__metadata__
+                        for meta in metadata:
+                            if isinstance(meta, Reference):
+                                if fname == field_name:
+                                    id_field_name = f"{field_name}{meta.resolve_field_suffix}"
+                                    if hasattr(self, id_field_name):
+                                        result[id_field_name] = str(getattr(self, id_field_name))
+                                    break
+
+        return result
+
+    def model_dump_json(
+        self,
+        *,
+        indent: int | None = None,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        context: JsonSchemaValue | None = None,
+        by_alias: bool | None = True,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        round_trip: bool = False,
+        fallback: Callable[[Any], Any] | None = None,
+        warnings: bool | Literal["none"] | Literal["warn"] | Literal["error"] = True,
+        serialize_as_any: bool = False,
+    ) -> str:
+        return super().model_dump_json(
+            indent=indent,
+            include=include,
+            exclude=exclude,
+            context=context,
+            by_alias=by_alias,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+            round_trip=round_trip,
+            fallback=fallback,
+            warnings=warnings,
+            serialize_as_any=serialize_as_any,
+        )

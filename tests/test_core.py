@@ -1,7 +1,7 @@
 import re
 from collections.abc import Sequence
 from datetime import datetime, timezone
-from typing import Any, Tuple, TypeAlias, Union
+from typing import Annotated, Any, Tuple, TypeAlias, Union
 
 import pytest
 from freezegun import freeze_time
@@ -10,6 +10,7 @@ from pytest_mock import MockerFixture
 from ulid import ULID
 
 from oltl import core
+from oltl.exceptions import UnresolvedReferenceError
 
 from .fixtures import float_test_cases, integer_test_cases, string_test_cases
 
@@ -393,3 +394,64 @@ def test_update_time_aware_model_serialize_deserialize() -> None:
     assert actual == serialize_expected
     deserialize_expected = model
     assert MyModel.model_validate_json(actual) == deserialize_expected
+
+
+def test_nested_model_with_reference_or_id_field() -> None:
+    class MyId(core.Id): ...
+
+    class MyModel(core.BaseEntity[MyId]):
+        name: str
+
+    class MyNestedModel(core.BaseModelWithReference):
+        my_model: Annotated[MyModel, core.Reference()]
+
+    my_id = MyId("01HRQ0KA867PDGYJXAVGKG3R1V")
+    my_model = MyModel(id=my_id, name="foo")
+    id_resolver = {
+        my_id: my_model,
+    }
+
+    my_nested_model_with_reference = MyNestedModel(my_model=my_model)
+    assert my_nested_model_with_reference.my_model.id == my_model.id
+    assert my_nested_model_with_reference.my_model.name == my_model.name
+    assert my_nested_model_with_reference.model_dump() == {
+        "my_model": {"id": MyId("01HRQ0KA867PDGYJXAVGKG3R1V"), "name": "foo"}
+    }
+    assert (
+        my_nested_model_with_reference.model_dump_json()
+        == '{"myModel":{"id":"01HRQ0KA867PDGYJXAVGKG3R1V","name":"foo"}}'
+    )
+
+    serialized_my_nested_model_with_reference = '{"myModel":{"id":"01HRQ0KA867PDGYJXAVGKG3R1V","name":"foo"}}'
+
+    my_nested_model_with_reference_from_serialized_data = MyNestedModel.model_validate_json(
+        serialized_my_nested_model_with_reference
+    )
+    assert my_nested_model_with_reference_from_serialized_data.my_model.id == my_model.id
+    assert my_nested_model_with_reference_from_serialized_data.my_model.name == my_model.name
+    assert my_nested_model_with_reference_from_serialized_data.model_dump() == {
+        "my_model": {"id": MyId("01HRQ0KA867PDGYJXAVGKG3R1V"), "name": "foo"}
+    }
+    assert (
+        my_nested_model_with_reference_from_serialized_data.model_dump_json()
+        == serialized_my_nested_model_with_reference
+    )
+
+    serialized_data_with_id = f'{{"my_model_id": "{my_model.id}"}}'
+    my_nested_model_with_id = MyNestedModel.model_validate_json(serialized_data_with_id)
+    assert my_nested_model_with_id.my_model == my_model.id
+    assert my_nested_model_with_id.model_dump() == {"my_model_id": MyId("01HRQ0KA867PDGYJXAVGKG3R1V")}
+    assert my_nested_model_with_id.model_dump_json() == {"myModelId": "01HRQ0KA867PDGYJXAVGKG3R1V"}
+
+    with pytest.raises(
+        UnresolvedReferenceError, match=re.escape("Unresolved reference: MyId('01HRQ0KA867PDGYJXAVGKG3R1V')")
+    ):
+        my_nested_model_with_id.my_model.name
+
+    my_nested_model_with_id.resolve(id_resolver)
+    assert my_nested_model_with_id.my_model.id == my_model.id
+    assert my_nested_model_with_id.my_model.name == my_model.name
+
+    my_nested_model_with_reference_and_id = MyNestedModel(my_model=my_model, my_model_id=my_model.id)
+    assert my_nested_model_with_reference_and_id.my_model.id == my_model.id
+    assert my_nested_model_with_reference_and_id.my_model.name == my_model.name
