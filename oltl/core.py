@@ -1,4 +1,6 @@
+import datetime
 import re
+import sys
 from base64 import standard_b64decode, standard_b64encode
 from collections.abc import Callable
 from datetime import datetime as _datetime
@@ -9,6 +11,7 @@ from typing import (
     Dict,
     Generic,
     Literal,
+    Protocol,
     Sequence,
     Type,
     TypeVar,
@@ -21,8 +24,8 @@ from typing import (
 import ulid
 from dateutil.parser import parse as parse_datetime
 from pydantic import (
+    AliasChoices,
     AliasGenerator,
-    AliasPath,
 )
 from pydantic import BaseModel
 from pydantic import BaseModel as PydanticBaseModel
@@ -36,16 +39,18 @@ from pydantic import (
     NewPath,
     TypeAdapter,
     create_model,
+    model_validator,
 )
 from pydantic.alias_generators import to_camel, to_snake
 from pydantic.json_schema import JsonSchemaValue
 from pydantic.main import IncEx
 from pydantic_core import core_schema
-from typing_extensions import Unpack
 from ulid import ULID
 
 from .exceptions import UnresolvedReferenceError
 from .utils import normalize_jptext
+
+UTC = datetime.UTC if sys.version_info >= (3, 12) else _timezone.utc
 
 StringT = TypeVar("StringT", bound="BaseString")
 BytesT = TypeVar("BytesT", bound="BaseBytes")
@@ -58,6 +63,13 @@ NewOrExistingDirectoryPath = Union[DirectoryPath, NewPath]
 PatternT = Union[str, re.Pattern[str]]
 
 
+class EntityProtocol(Protocol):
+    id: IdT
+
+
+EntityT = TypeVar("EntityT", bound=EntityProtocol)
+
+
 class BaseBytes(bytes):
     """
     BaseBytes is a bytes type that can be used to validate and serialize bytes.
@@ -66,15 +78,15 @@ class BaseBytes(bytes):
     BaseBytes(b'test')
     >>> bytes(BaseBytes(b"test"))
     b'test'
-    >>> BaseBytes("YSAgMC1yMzJm")
+    >>> BaseBytes("YS Ag MC1yMzJm")
     BaseBytes(b'a  0-r32f')
     >>> class TestBytes(BaseModel):
     ...   value: BaseBytes
     >>> TestBytes(value=b"test").model_dump()
     {'value': BaseBytes(b'test')}
-    >>> TestBytes.model_validate_json('{"value":"YSAgMC1yMzJm"}')
+    >>> TestBytes.model_validate_json('{"value":"YS Ag MC1yMzJm"}')
     TestBytes(value=BaseBytes(b'a  0-r32f'))
-    >>> TestBytes(value="YSAgMC1yMzJm").model_dump()
+    >>> TestBytes(value="YS Ag MC1yMzJm").model_dump()
     {'value': BaseBytes(b'a  0-r32f')}
     >>> TestBytes(value=b"test").model_dump_json()
     '{"value":"dGVzdA=="}'
@@ -814,7 +826,7 @@ class Timestamp(int):
 
     @classmethod
     def now(cls) -> "Timestamp":
-        return cls(_datetime.utcnow())
+        return cls(_datetime.now(UTC))
 
     def __repr__(self) -> str:
         return f"Timestamp({super(Timestamp, self).__repr__()})"
@@ -1076,117 +1088,57 @@ class BaseUpdateTimeAwareModel(BaseCreationTimeAwareModel):
         super(BaseUpdateTimeAwareModel, self).__setattr__("updated_at", Timestamp.now())
 
 
-class Reference:
-    def __init__(self, resolve_field_suffix: str = "_id"):
-        self._resolve_field_suffix = resolve_field_suffix
-
-    @property
-    def resolve_field_suffix(self) -> str:
-        return self._resolve_field_suffix
-
-
-class ReferenceProxy(Generic[IdT]):
-    def __init__(self, id_value: IdT, target_type: Type[BaseEntity[IdT]]):
-        self._id = id_value
-        self._target_type = target_type
-        self._resolved = None
+class Reference(Generic[EntityT]):
+    def __init__(self, value: EntityT):
+        self._value = value
 
     def __getattr__(self, name: str) -> Any:
-        if self._resolved is None:
-            raise UnresolvedReferenceError(f"Unresolved reference: {self._id!r}")
-        return getattr(self._resolved, name)
+        return getattr(self._value, name)
 
-    def resolve(self, entity: BaseEntity[IdT]) -> BaseEntity[IdT]:
-        self._resolved = entity
-        return entity
+    @classmethod
+    def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
+        args = get_args(source_type)
+        if not args:
+            raise ValueError(f"Expected Reference[EntityT], got {source_type}")
+        entity_type = args[0]
+        if not issubclass(entity_type, BaseEntity):
+            raise ValueError(f"Expected BaseEntity, got {entity_type}")
+        id_type = entity_type.model_fields["id"].annotation
+        if not issubclass(id_type, Id):
+            raise ValueError(f"Expected Id, got {id_type}")
 
+        entity_schema = handler.generate_schema(entity_type)
+        id_schema = handler.generate_schema(Id)
 
-class BaseModelWithReference(BaseModel):
+        def validate_reference(value: Any) -> Reference:
+            if isinstance(value, Reference):
+                return value
+            elif isinstance(value, entity_type):
+                return cls(value)
+            elif isinstance(value, Id):
+                return cls(value)
+            else:
+                raise ValueError(f"Expected {entity_type.__name__}, ID, or Reference, got {type(value)}")
 
-    def resolve(self, id_resolver: Dict[Any, Any]):
-        """参照を解決"""
-        for field_name, proxy in self._reference_proxies.items():
-            if proxy._id in id_resolver:
-                entity = id_resolver[proxy._id]
-                proxy.resolve(entity)
-                setattr(self, field_name, entity)
+        def serialize_reference(ref: Reference) -> Any:
+            print(ref)
+            return str(ref._value)
 
-    def model_dump(
-        self,
-        *,
-        include: IncEx | None = None,
-        exclude: IncEx | None = None,
-        context: Any | None = None,
-        by_alias: bool | None = None,
-        exclude_unset: bool = False,
-        exclude_defaults: bool = False,
-        exclude_none: bool = False,
-        round_trip: bool = False,
-        warnings: bool | Literal["none"] | Literal["warn"] | Literal["error"] = True,
-        fallback: Callable[[Any], Any] | None = None,
-        serialize_as_any: bool = False,
-    ) -> Dict[str, Any]:
-        result = super().model_dump(
-            include=include,
-            exclude=exclude,
-            context=context,
-            by_alias=by_alias,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
-            round_trip=round_trip,
-            warnings=warnings,
-            fallback=fallback,
-            serialize_as_any=serialize_as_any,
-        )
+        python_schema = core_schema.is_instance_schema(cls)
 
-        for field_name, value in self.__dict__.items():
-            if field_name.startswith("_"):
-                continue
-
-            # 参照プロキシの場合はID値を使用
-            if isinstance(value, ReferenceProxy):
-                # 対応するIDフィールドを探す
-                for fname, finfo in self.__class__.model_fields.items():
-                    if hasattr(finfo.annotation, "__metadata__"):
-                        metadata = finfo.annotation.__metadata__
-                        for meta in metadata:
-                            if isinstance(meta, Reference):
-                                if fname == field_name:
-                                    id_field_name = f"{field_name}{meta.resolve_field_suffix}"
-                                    if hasattr(self, id_field_name):
-                                        result[id_field_name] = str(getattr(self, id_field_name))
-                                    break
-
-        return result
-
-    def model_dump_json(
-        self,
-        *,
-        indent: int | None = None,
-        include: IncEx | None = None,
-        exclude: IncEx | None = None,
-        context: JsonSchemaValue | None = None,
-        by_alias: bool | None = True,
-        exclude_unset: bool = False,
-        exclude_defaults: bool = False,
-        exclude_none: bool = False,
-        round_trip: bool = False,
-        fallback: Callable[[Any], Any] | None = None,
-        warnings: bool | Literal["none"] | Literal["warn"] | Literal["error"] = True,
-        serialize_as_any: bool = False,
-    ) -> str:
-        return super().model_dump_json(
-            indent=indent,
-            include=include,
-            exclude=exclude,
-            context=context,
-            by_alias=by_alias,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
-            round_trip=round_trip,
-            fallback=fallback,
-            warnings=warnings,
-            serialize_as_any=serialize_as_any,
+        return core_schema.no_info_before_validator_function(
+            validate_reference,
+            core_schema.union_schema(
+                [
+                    python_schema,
+                    entity_schema,
+                    id_schema,
+                ]
+            ),
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                serialize_reference,
+                info_arg=False,
+                return_schema=core_schema.union_schema([entity_schema, core_schema.str_schema()]),
+                when_used="json",
+            ),
         )

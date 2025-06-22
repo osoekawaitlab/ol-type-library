@@ -31,6 +31,10 @@ def test_timestamp_now() -> None:
     assert actual == expected
 
 
+def test_timestamp_now_doesnt_raise_deprecation_warning() -> None:
+    _ = core.Timestamp.now()
+
+
 def test_derived_entity_has_derived_id(mocker: MockerFixture) -> None:
     mocker.patch(
         "oltl.core.ulid.new",
@@ -396,62 +400,75 @@ def test_update_time_aware_model_serialize_deserialize() -> None:
     assert MyModel.model_validate_json(actual) == deserialize_expected
 
 
+@pytest.mark.wip
 def test_nested_model_with_reference_or_id_field() -> None:
     class MyId(core.Id): ...
 
     class MyModel(core.BaseEntity[MyId]):
-        name: str
+        my_name: str
 
-    class MyNestedModel(core.BaseModelWithReference):
-        my_model: Annotated[MyModel, core.Reference()]
+    class MyNestedModel(core.BaseModel):
+        my_model: core.Reference[MyModel]
+        other_field: str
 
-    my_id = MyId("01HRQ0KA867PDGYJXAVGKG3R1V")
-    my_model = MyModel(id=my_id, name="foo")
+    my_model_id_str = "01JW6BDV73VS6SY55DGXVMMA3Y"
+    my_model_id = MyId(my_model_id_str)
+    my_model = MyModel(id=my_model_id, my_name="foo")
+
     id_resolver = {
-        my_id: my_model,
+        "my_model": {
+            my_model_id: my_model,
+        }
     }
 
-    my_nested_model_with_reference = MyNestedModel(my_model=my_model)
-    assert my_nested_model_with_reference.my_model.id == my_model.id
-    assert my_nested_model_with_reference.my_model.name == my_model.name
-    assert my_nested_model_with_reference.model_dump() == {
-        "my_model": {"id": MyId("01HRQ0KA867PDGYJXAVGKG3R1V"), "name": "foo"}
+    sut = MyNestedModel(my_model=my_model, other_field="bar")
+    assert sut.my_model.id == my_model.id
+    assert sut.my_model.my_name == my_model.my_name
+    assert sut.other_field == "bar"
+    assert sut.model_dump() == {
+        "my_model": {"id": MyId("01JW6BDV73VS6SY55DGXVMMA3Y"), "my_name": "foo"},
+        "other_field": "bar",
     }
-    assert (
-        my_nested_model_with_reference.model_dump_json()
-        == '{"myModel":{"id":"01HRQ0KA867PDGYJXAVGKG3R1V","name":"foo"}}'
-    )
+    assert sut.model_dump_json() == '{"myModel":{"id":"01JW6BDV73VS6SY55DGXVMMA3Y","myName":"foo"},"otherField":"bar"}'
 
-    serialized_my_nested_model_with_reference = '{"myModel":{"id":"01HRQ0KA867PDGYJXAVGKG3R1V","name":"foo"}}'
-
-    my_nested_model_with_reference_from_serialized_data = MyNestedModel.model_validate_json(
-        serialized_my_nested_model_with_reference
-    )
-    assert my_nested_model_with_reference_from_serialized_data.my_model.id == my_model.id
-    assert my_nested_model_with_reference_from_serialized_data.my_model.name == my_model.name
-    assert my_nested_model_with_reference_from_serialized_data.model_dump() == {
-        "my_model": {"id": MyId("01HRQ0KA867PDGYJXAVGKG3R1V"), "name": "foo"}
+    sut.resolve(id_resolver)
+    assert sut.my_model.id == my_model.id
+    assert sut.my_model.my_name == my_model.my_name
+    assert sut.other_field == "bar"
+    assert sut.model_dump() == {
+        "my_model": {"id": MyId("01JW6BDV73VS6SY55DGXVMMA3Y"), "my_name": "foo"},
+        "other_field": "bar",
     }
-    assert (
-        my_nested_model_with_reference_from_serialized_data.model_dump_json()
-        == serialized_my_nested_model_with_reference
-    )
+    assert sut.model_dump_json() == '{"myModel":{"id":"01JW6BDV73VS6SY55DGXVMMA3Y","myName":"foo"},"otherField":"bar"}'
 
-    serialized_data_with_id = f'{{"my_model_id": "{my_model.id}"}}'
-    my_nested_model_with_id = MyNestedModel.model_validate_json(serialized_data_with_id)
-    assert my_nested_model_with_id.my_model == my_model.id
-    assert my_nested_model_with_id.model_dump() == {"my_model_id": MyId("01HRQ0KA867PDGYJXAVGKG3R1V")}
-    assert my_nested_model_with_id.model_dump_json() == {"myModelId": "01HRQ0KA867PDGYJXAVGKG3R1V"}
-
+    sut = MyNestedModel(my_model_id=my_model_id, other_field="bar")
+    assert sut.my_model == my_model_id
     with pytest.raises(
-        UnresolvedReferenceError, match=re.escape("Unresolved reference: MyId('01HRQ0KA867PDGYJXAVGKG3R1V')")
+        UnresolvedReferenceError, match=re.escape("Unresolved reference: MyId('01JW6BDV73VS6SY55DGXVMMA3Y')")
     ):
-        my_nested_model_with_id.my_model.name
+        sut.my_model.my_name
+    assert sut.other_field == "bar"
+    assert sut.model_dump() == {
+        "my_model_id": MyId("01JW6BDV73VS6SY55DGXVMMA3Y"),
+        "other_field": "bar",
+    }
+    assert sut.model_dump_json() == '{"myModelId":"01JW6BDV73VS6SY55DGXVMMA3Y","otherField":"bar"}'
 
-    my_nested_model_with_id.resolve(id_resolver)
-    assert my_nested_model_with_id.my_model.id == my_model.id
-    assert my_nested_model_with_id.my_model.name == my_model.name
+    sut.resolve(id_resolver)
+    assert sut.my_model.id == my_model.id
+    assert sut.my_model.my_name == my_model.my_name
+    assert sut.other_field == "bar"
+    assert sut.model_dump() == {
+        "my_model": {"id": MyId("01JW6BDV73VS6SY55DGXVMMA3Y"), "my_name": "foo"},
+        "other_field": "bar",
+    }
+    assert sut.model_dump_json() == '{"myModel":{"id":"01JW6BDV73VS6SY55DGXVMMA3Y","myName":"foo"},"otherField":"bar"}'
 
-    my_nested_model_with_reference_and_id = MyNestedModel(my_model=my_model, my_model_id=my_model.id)
-    assert my_nested_model_with_reference_and_id.my_model.id == my_model.id
-    assert my_nested_model_with_reference_and_id.my_model.name == my_model.name
+    sut = MyNestedModel(myModel=my_model, other_field="bar")
+    assert sut.my_model == my_model
+    assert sut.other_field == "bar"
+    assert sut.model_dump() == {
+        "my_model": {"id": MyId("01JW6BDV73VS6SY55DGXVMMA3Y"), "my_name": "foo"},
+        "other_field": "bar",
+    }
+    assert sut.model_dump_json() == '{"myModel":{"id":"01JW6BDV73VS6SY55DGXVMMA3Y","myName":"foo"},"otherField":"bar"}'

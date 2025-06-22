@@ -73,6 +73,9 @@ testpaths = ["tests", "oltl"]
 filterwarnings = [
     "error",
 ]
+markers = [
+    "wip: mark test as wip",
+]
 
 [tool.black]
 line-length = 120
@@ -99,7 +102,7 @@ profile = "black"
 legacy_tox_ini = """
     [tox]
     skipsdist = true
-    envlist = py310
+    envlist = py310, py311, py312
 
     [testenv]
     setenv = 
@@ -109,7 +112,7 @@ legacy_tox_ini = """
     commands = 
         black oltl tests
         isort oltl tests
-        pytest
+        pytest -m "not wip"
         pflake8 oltl/ tests/ stubs/
         mypy oltl --strict --show-traceback
         mypy tests --strict

@@ -81,3 +81,45 @@ def test_oltl_has_type_vars() -> None:
 def test_oltl_has_path_related_types() -> None:
     assert oltl.NewOrExistingFilePath == core.NewOrExistingFilePath
     assert oltl.NewOrExistingDirectoryPath == core.NewOrExistingDirectoryPath
+
+
+from pydantic import AliasChoices, AliasGenerator, ConfigDict
+from pydantic.alias_generators import to_camel
+
+from oltl import BaseModel
+
+to_reference = AliasGenerator(
+    validation_alias=lambda field_name: AliasChoices(
+        field_name, f"{field_name}_id", to_camel(field_name), to_camel(f"{field_name}_id")
+    ),
+    alias=lambda field_name: field_name,
+    serialization_alias=lambda field_name: to_camel(field_name),
+)
+
+
+class A(BaseModel):
+    id: oltl.Id
+    name: str
+
+
+class B(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_reference, validate_assignment=True)
+    a: A
+
+
+class C(BaseModel):
+    name_object: str
+
+
+def test_oltl_has_base_model() -> None:
+    idstr = oltl.Id.generate().str
+    c = C.model_validate({"name_object": "s"})
+    assert c.name_object == "s"
+    c = C.model_validate({"nameObject": "s"})
+    assert c.name_object == "s"
+    b = B.model_validate({"a": {"id": idstr, "name": "b"}})
+    assert b.a.id == idstr
+    assert b.a.name == "b"
+    b = B.model_validate({"a_id": {"id": idstr, "name": "b"}})
+    assert b.a.id == idstr
+    assert b.a.name == "b"
